@@ -110,3 +110,4 @@ Re: 前端渲染部分我跟助教讨论过了, Cesium 的 api 够用了, 我可
 还有关于这个项目, 其实我觉得差不多的 github 上面应该有框架了, 所以工作量应该不会很大, 台风路径趋势确实难搞, 适当想一些 llm 的功能作为创新点也没问题, 如果大家想轻松点这个确实 ok
 
 补充一个 [github 仓库](https://github.com/hurricane-viewer/hurricane-viewer.github.io)
+
