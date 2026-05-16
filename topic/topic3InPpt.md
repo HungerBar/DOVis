@@ -10,7 +10,7 @@
 
 [参考](https://myoceanglobe.marine.copernicus.eu/)
 
-Q1: 三维透视? 计划对某些等值面用 marching cubes 算法渲染出来
+Q1: 三维透视? 计划对某些等值面用 [marching cubes 算法](https://graphics.stanford.edu/~mdfisher/MarchingCubes.html) 渲染出来
 
 ## 多深度层数数据分析, 剖面分析
 
