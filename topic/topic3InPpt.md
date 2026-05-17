@@ -23,5 +23,4 @@ Q3: 需要对多深度层数, 剖面做哪些后端分析?
 ## 数据源
 
 - [国家海洋环境预报中心](https://www.nmefc.cn/ybfw/styb/WestNorthPacific)
-- [Global Ocean Biogeochemistry Hindcast](https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_BGC_001_029/description)
-- [Global Ocean Biogeochemistry Analysis and Forecast](https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_BGC_001_028/description)
+- [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products?pk_vid=af6103db3d4548e717790159795188c5)
