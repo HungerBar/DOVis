@@ -1,12 +1,12 @@
-# 洋盆多维可视化平台
+# 洋盆溶解氧多维可视化平台
 
 - 全球溶解氧0-6000米多维数据展示，实现三维透视
-- 海洋多深度层数据分析
-- 海洋剖面分析
+- 海洋多深度层溶解氧数据分析
+- 海洋剖面溶解氧分析
 
 ## 初步分析
 
-### 全球模型
+### 全球模型与三维透视
 
 [参考](https://myoceanglobe.marine.copernicus.eu/)
 
@@ -14,15 +14,25 @@ Q1: 三维透视是指什么?
 
 目前的设想是用户可以通过滑块选定溶解氧的值, 然后对等值面用 [marching cubes 算法](https://graphics.stanford.edu/~mdfisher/MarchingCubes.html) 构建并渲染
 
-### 多深度层数数据分析, 剖面分析
+### 溶解氧垂直剖面分析
 
-Q2: 关于剖面分析, 怎样合理的从三维模型中提取出目标剖面 (用户该怎么操作才能得到他想要的目标的剖面图)
+用户通过地图选点 / 输入目标经纬度来实现溶解氧垂直剖面点的选择, 然后参考地形剖面的采样方式构建垂直剖面图(DO-depth)
 
-目前的设想是用户给定目标深度, 剖面的 x-y 平面曲线, 参考地形剖面, 采用相同的交互逻辑与采样方法, 希望支持多数据的显示
+> 可以拓展为断面分析, 即做一个 (depth-x) 图, 然后用颜色表示当地 DO 值的大小
 
-Q3: 需要对多深度层数, 剖面做哪些后端分析?
 
-目前想做海洋溶解氧, 叶绿素相关的数据, 具体可以参考下面的 _数据源_, 请问老师针对这些数据具体有哪些后端分析可以做呢?
+### 低氧区边界分析（Hypoxic Boundary Analysis）
+
+借用上面三维等值面构建的算法, 实现低氧区的三维可视化, 同样实现时间滑块, 可以用于观察低氧边界如何移动
+
+- 低氧体积的计算
+
+### EOF模态分解（EOF Analysis）
+
+[tutorial](https://www.ictp.it/sites/default/files/%5Bteaching-materials%5D/lecture_notes_AD_section13.pdf)
+
+[github repository](https://github.com/ajdawson/eofs/)
+
 
 ### 数据源
 
@@ -47,3 +57,13 @@ Q3: 需要对多深度层数, 剖面做哪些后端分析?
 ### 后端
 
 - [flask](https://fastapi.tiangolo.com/tutorial/first-steps/#define-a-path-operation-decorator)
+
+
+
+### 计划分工
+
+1. 整体框架, 汇总, UI美化: 1人
+2. 全球溶解氧0-6000米多维数据展示，实现三维透视: 1 人
+3. 溶解氧垂直剖面分析, 断面可视化(可选), 协助整理总体项目: 1 人
+4. 低氧区边界分析 (Hypoxic Boundary Analysis), 低氧体积计算(输入为时间, 可选): 1 人
+5. 利用 eofs 库实现基本的 EOF 模态分解(主要做探索): 1 人
