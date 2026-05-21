@@ -196,3 +196,6 @@ __pypackages__/
 .ruff_cache/
 .cursorignore
 .cursorindexingignore
+
+
+DOVis/data/
