@@ -25,7 +25,7 @@ Q1: 三维透视是指什么?
 
 借用上面三维等值面构建的算法, 实现低氧区的三维可视化, 同样实现时间滑块, 可以用于观察低氧边界如何移动
 
-- 低氧体积的计算
+> 可拓展为低氧体积的计算
 
 ### EOF模态分解（EOF Analysis）
 
@@ -38,11 +38,7 @@ Q1: 三维透视是指什么?
 
 - [国家海洋环境预报中心](https://www.nmefc.cn/ybfw/styb/WestNorthPacific)
 - [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products?pk_vid=af6103db3d4548e717790159795188c5)
-
-目前想做海洋溶解氧, 叶绿素相关的数据
-
 - [Global Ocean Biogeochemistry Hindcast](https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_BGC_001_029/services)
-  - [User Manual](https://documentation.marine.copernicus.eu/PUM/CMEMS-GLO-PUM-001-029.pdf)
 
 
 ![alt text](image.png)
@@ -64,6 +60,8 @@ Q1: 三维透视是指什么?
 
 1. 整体框架, 汇总, UI美化: 1人
 2. 全球溶解氧0-6000米多维数据展示，实现三维透视: 1 人
-3. 溶解氧垂直剖面分析, 断面可视化(可选), 协助整理总体项目: 1 人
+3. 溶解氧垂直剖面分析, 断面可视化(可选): 1 人
 4. 低氧区边界分析 (Hypoxic Boundary Analysis), 低氧体积计算(输入为时间, 可选): 1 人
 5. 利用 eofs 库实现基本的 EOF 模态分解(主要做探索): 1 人
+
+> 如果不能实现拓展功能, 需配合 1 一起完成汇总与美化工作
