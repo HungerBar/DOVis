@@ -10,6 +10,8 @@
 
 [参考](https://myoceanglobe.marine.copernicus.eu/)
 
+目前实现暂定印度洋, 首先实现印度洋部分功能
+
 Q1: 三维透视是指什么? 
 
 目前的设想是用户可以通过滑块选定溶解氧的值, 然后对等值面用 [marching cubes 算法](https://graphics.stanford.edu/~mdfisher/MarchingCubes.html) 构建并渲染
