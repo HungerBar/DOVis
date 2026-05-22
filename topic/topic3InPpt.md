@@ -14,7 +14,10 @@
 
 Q1: 三维透视是指什么? 
 
-目前的设想是用户可以通过滑块选定溶解氧的值, 然后对等值面用 [marching cubes 算法](https://graphics.stanford.edu/~mdfisher/MarchingCubes.html) 构建并渲染
+目前的设想是用户可以过输入时间, 值来获得等值面
+
+- 高精度: 对等值面用 [marching cubes 算法](https://graphics.stanford.edu/~mdfisher/MarchingCubes.html) 构建并渲染, 支持导出 `.obj` / `.nc` 等格式文件
+- 实时性: 对于动态滑块, 考虑使用 ray marching 的方式实现
 
 ### 溶解氧垂直剖面分析
 
@@ -42,6 +45,7 @@ Q1: 三维透视是指什么?
 
 ### 前端
 
+- Vite
 - [React](https://zh-hans.react.dev/learn)
 - [Cesium](https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html#.ConstructorOptions)
 
@@ -53,13 +57,14 @@ Q1: 三维透视是指什么?
 
 ### 计划分工
 
-1. 整体框架, 汇总, UI美化: 1人
-2. 全球溶解氧0-6000米多维数据展示，实现三维透视: 1 人
-3. 溶解氧垂直剖面分析, 断面可视化(可选): 1 人
+1. 整体框架, 汇总, UI美化: 李航宇
+2. 全球溶解氧0-6000米多维数据展示，实现三维透视: 谢骐骏 
+3. 溶解氧垂直剖面分析, 断面可视化(可选): 叶羽童 
 4. 低氧区边界分析 (Hypoxic Boundary Analysis), 低氧体积计算(输入为时间, 可选): 1 人
 5. 利用 eofs 库实现基本的 EOF 模态分解: 1 人
 6. 整理文档, 维护仓库: 谢骐骏
 7. 汇报:
+
 > 如果不能实现拓展功能, 需配合 1 一起完成汇总与美化工作
 
 
