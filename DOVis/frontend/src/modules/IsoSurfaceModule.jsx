@@ -1,0 +1,80 @@
+import IsoSurfaceRenderer from '../components/IsoSurfaceRenderer';
+import IsoSurfaceControlPanel from '../components/IsoSurfaceControlPanel';
+
+import useIsoSurface from '../hooks/useIsoSurface';
+import useCesiumTiles from '../hooks/useCesiumTiles';
+
+export default function IsoSurfaceModule() {
+  // =====================================
+  // IsoSurface State
+  // =====================================
+
+  const {
+    times,
+    timeIndex,
+    setTimeIndex,
+
+    isoValue,
+    setIsoValue,
+
+    volume,
+    shape,
+    loading,
+
+    handleExportNc,
+  } = useIsoSurface();
+
+  // =====================================
+  // Cesium Tiles Command
+  // =====================================
+
+  const { load } = useCesiumTiles(
+    timeIndex,
+    isoValue
+  );
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        height: '100%',
+        background: '#0b1220',
+        color: '#fff',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Left Panel */}
+      <div
+        style={{
+          width: 320,
+          flexShrink: 0,
+        }}
+      >
+        <IsoSurfaceControlPanel
+          times={times}
+          timeIndex={timeIndex}
+          setTimeIndex={setTimeIndex}
+          isoValue={isoValue}
+          setIsoValue={setIsoValue}
+          onRenderCesium={load}
+          onExportNc={handleExportNc}
+        />
+      </div>
+
+      {/* Right Render */}
+      <div
+        style={{
+          flex: 1,
+          position: 'relative',
+        }}
+      >
+        <IsoSurfaceRenderer
+          volume={volume}
+          shape={shape}
+          isoValue={isoValue}
+          loading={loading}
+        />
+      </div>
+    </div>
+  );
+}

@@ -51,8 +51,7 @@ Q1: 三维透视是指什么?
 
 ### 后端
 
-- [flask](https://fastapi.tiangolo.com/tutorial/first-steps/#define-a-path-operation-decorator)
-
+- fast
 
 
 ### 计划分工
