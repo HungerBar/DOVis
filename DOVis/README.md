@@ -19,6 +19,8 @@
 
 ## frontend
 
+`pnpm install` 自动下载所有依赖
+
 - `\config`: 这是一些 config 参数
   - `module`: 你拓展的模块, 需要在这里通过增加 config 注册
   - `cesium`: 这是关于 Cesium 的一些 config
