@@ -1,4 +1,5 @@
 import numpy as np
+import json
 from skimage import measure
 from pyproj import Transformer
 from backend.core.dataset import get_ds
@@ -9,6 +10,20 @@ to_ecef = Transformer.from_crs(
     always_xy=True,
 )
 
+def safe(obj):
+    """convert numpy types to python native types for printing"""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (np.floating, np.integer)):
+        return obj.item()
+    return obj
+
+
+def print_metadata(meta):
+    meta_safe = {k: safe(v) for k, v in meta.items()}
+    print("\n========== TILE METADATA ==========")
+    print(json.dumps(meta_safe, indent=2))
+    print("===================================\n")
 
 def run_marching_cubes(time_idx: int, iso_value: float, verbose=True):
     ds = get_ds()
@@ -75,26 +90,25 @@ def run_marching_cubes(time_idx: int, iso_value: float, verbose=True):
     depth_v = interp(depth[:, None, None].repeat(len(lat), 1).repeat(len(lon), 2))
 
     # =========================================================
-    # 5. 构建局部 ENU 坐标（关键替换）
+    # 5. ENU 构建
     # =========================================================
 
-    # reference origin（局部原点）
     lon0 = float(np.mean(lon_v))
     lat0 = float(np.mean(lat_v))
     h0 = 0.0
 
-    # origin in ECEF
+    # local origin in ECEF
     x0, y0, z0 = to_ecef.transform(lon0, lat0, h0)
 
     # vertices in ECEF
-    height_v = -depth_v  # 海洋：深度转高度
+    height_v = -depth_v
     x, y, z = to_ecef.transform(lon_v, lat_v, height_v)
 
     dx = x - x0
     dy = y - y0
     dz = z - z0
 
-    # ECEF → ENU rotation matrix
+    # ECEF → ENU rotation
     lon_r = np.deg2rad(lon0)
     lat_r = np.deg2rad(lat0)
 
@@ -111,20 +125,84 @@ def run_marching_cubes(time_idx: int, iso_value: float, verbose=True):
         ]
     )
 
-    verts_enu = np.vstack([R @ np.array([dx, dy, dz])]).T
+    verts_enu = (R @ np.vstack([dx, dy, dz])).T
 
     # =========================================================
-    # 6. sanity check
+    # 6. 地心相关（关键：全部以 ECEF 为基准）
+    # =========================================================
+
+    # Earth center
+    earth_center_ecef = np.array([0.0, 0.0, 0.0])
+
+    # direction: north in ECEF
+    north_ecef = np.array([-slat * clon, -slat * slon, clat])
+
+    # direction: meridian on equator (lon0, lat=0)
+    meridian_ecef = np.array([clon, slon, 0.0])
+
+    # =========================================================
+    # 7. ECEF → ENU 投影
+    # =========================================================
+
+    center_enu = R @ (earth_center_ecef - np.array([x0, y0, z0]))
+    north_enu = R @ north_ecef
+    meridian_enu = R @ meridian_ecef
+
+    north_enu = north_enu / (np.linalg.norm(north_enu) + 1e-12)
+    meridian_enu = meridian_enu / (np.linalg.norm(meridian_enu) + 1e-12)
+
+    # =========================================================
+    # 8. bounding sphere（地心为球心 ✔）
+    # =========================================================
+
+    verts_ecef = np.vstack([x, y, z]).T
+    radius = float(np.max(np.linalg.norm(verts_ecef, axis=1)))
+
+    # =========================================================
+    # 9. sanity check
     # =========================================================
     if not np.all(np.isfinite(verts_enu)):
-        bad = np.sum(~np.isfinite(verts_enu))
-        raise ValueError(f"Invalid ENU vertices: {bad}")
+        raise ValueError("Invalid ENU vertices detected")
 
     if verbose:
         print("\n[RESULT]")
         print("verts:", len(verts_enu))
         print("faces:", len(faces))
-        print("nan filled:", nan_count)
+        print("radius:", radius)
         print("origin:", (lon0, lat0))
 
-    return verts_enu, faces, {"lon0": 80, "lat0": -10, "height0": 0}
+    # =========================================================
+    # 10. return
+    # =========================================================
+
+    
+    meta = {
+        # local frame
+        "lon0": lon0,
+        "lat0": lat0,
+        "height0": 0.0,
+
+        # earth center (ECEF)
+        "earth_center_ecef": [0.0, 0.0, 0.0],
+
+        # earth center in ENU
+        "earth_center_enu": center_enu.tolist(),
+
+        # direction vectors in ENU
+        "north_enu": north_enu.tolist(),
+        "meridian_enu": meridian_enu.tolist(),
+
+        # optional: ECEF directions
+        "north_ecef": north_ecef.tolist(),
+        "meridian_ecef": meridian_ecef.tolist(),
+
+        # bounding sphere
+        "bounding_sphere": {
+            "center_ecef": [0.0, 0.0, 0.0],
+            "radius": radius
+        }
+    }
+
+    print_metadata(meta)
+
+    return verts_enu, faces, meta

@@ -24,8 +24,8 @@ def export_glb(vertices, faces, path=None, origin=None):
     # =========================================================
     # 2. vertex colors (debug)
     # =========================================================
-    ORANGE = np.array([255, 140, 0, 255], dtype=np.uint8)
-    colors = np.tile(ORANGE, (len(vertices), 1))
+    YELLOW = np.array([255, 255, 0, 255], dtype=np.uint8)
+    colors = np.tile(YELLOW, (len(vertices), 1))
 
     # =========================================================
     # 3. CRITICAL: NO GEOMETRY PROCESSING

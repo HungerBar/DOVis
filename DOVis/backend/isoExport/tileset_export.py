@@ -97,13 +97,13 @@ def export_tileset(time_idx: int, iso_value: float, out_root: str = "tiles"):
         lat0 = meta["lat0"] if isinstance(meta, dict) else -20.0
         height0 = 0.0
 
+        
+
         tileset = build_tileset(
-            b3dm_uri="iso.b3dm",
-            geometric_error=float(radius),
-            lon=lon0,
-            lat=lat0,
-            height=height0,
-        )
+            b3dm_uri = "iso.b3dm",
+            mc_result = meta,
+            geometric_error = float(radius)
+            )
 
         tileset = json.loads(json.dumps(tileset, default=to_py))
 
