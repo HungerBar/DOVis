@@ -28,7 +28,7 @@ export default function IsoSurfaceModule() {
   // Cesium Tiles Command
   // =====================================
 
-  const { load } = useCesiumTiles(
+  const { load, reset } = useCesiumTiles(
     timeIndex,
     isoValue
   );
@@ -57,6 +57,7 @@ export default function IsoSurfaceModule() {
           isoValue={isoValue}
           setIsoValue={setIsoValue}
           onRenderCesium={load}
+          endRenderCesium={reset}
           onExportNc={handleExportNc}
         />
       </div>

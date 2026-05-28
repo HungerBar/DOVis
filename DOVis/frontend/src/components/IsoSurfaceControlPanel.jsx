@@ -176,6 +176,7 @@ const IsoSurfaceControlPanel = ({
   setIsoValue,
 
   onRenderCesium,
+  endRenderCesium,
   onExportNc,
 }) => {
   return (
@@ -238,7 +239,12 @@ const IsoSurfaceControlPanel = ({
           >
             Render 3D Tiles in Cesium
           </button>
-
+          <button 
+            style={styles.secondaryButton}
+            onClick={endRenderCesium}
+          >
+            End Render Mode   
+          </button>
           <button
             style={styles.secondaryButton}
             onClick={onExportNc}

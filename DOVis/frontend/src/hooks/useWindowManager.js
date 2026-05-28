@@ -44,7 +44,7 @@ export function useWindowManager() {
           x: 120,
           y: 120,
           width: 700,
-          height: 500,
+          height: 700,
           visible: true,
           zIndex: zRef.current,
         },
@@ -66,6 +66,7 @@ export function useWindowManager() {
         w.id === id ? { ...w, ...patch } : w
       )
     );
+    
   };
 
   return { windows, open, close, update, focus };
