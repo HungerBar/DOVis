@@ -7,6 +7,8 @@ from backend.api.routers import (
     times,
     volume,
     isoExport,
+    
+    eof
 )
 from backend.core.clearTileCache import clear_tiles_cache
 
@@ -52,6 +54,8 @@ app.add_middleware(
 app.include_router(times.router, prefix="/api", tags=["times"])
 app.include_router(volume.router, prefix="/api", tags=["volume"])
 app.include_router(isoExport.router, prefix="/api", tags=["isoExport"])
+
+app.include_router(eof.router, prefix="/api", tags=["eof"])
 
 # =========================================================
 # STATIC TILE SERVER（核心）

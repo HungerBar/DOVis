@@ -10,6 +10,15 @@ _lock = threading.Lock()
 _validated = False
 
 
+# =========================================================
+# MULTI DATASET SUPPORT
+# =========================================================
+
+DATASETS = {
+    "do_predict": DATA_PATH,   # 当前默认数据
+}
+
+
 def _validate_nc(path: Path) -> bool:
     """
     只做轻量级验证，不污染全局状态
@@ -80,3 +89,30 @@ def get_ds():
         except Exception as e:
             _reset_cache()
             raise RuntimeError(f"[Dataset] failed to open dataset: {e}")
+
+
+def get_ds_by_id(dataset_id: str):
+    """
+    多数据源版本 dataset loader
+    """
+
+    with _lock:
+
+        # 检查 dataset 是否存在
+        if dataset_id not in DATASETS:
+            raise ValueError(f"[Dataset] Unknown dataset_id: {dataset_id}")
+
+        path = DATASETS[dataset_id]
+
+        # 文件检查
+        if not path.exists():
+            raise FileNotFoundError(f"[Dataset] not found: {path}")
+
+        # ⚠️ 不重复缓存逻辑（先简单版，避免复杂bug）
+        try:
+            ds = xr.open_dataset(path, decode_times=False)
+            return ds
+
+        except Exception as e:
+            raise RuntimeError(f"[Dataset] failed to open {dataset_id}: {e}")
+
