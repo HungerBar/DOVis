@@ -1,26 +1,17 @@
-const styles = {
-  window: {
-    position: 'absolute',
-    background: '#0b1220',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-  },
+import '../UI/floatingWindow.css'
 
-  header: {
-    height: '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 10px',
-    background: '#1e293b',
-    cursor: 'grab',
-    color: '#fff',
-    fontSize: '12px',
-    userSelect: 'none',
-  },
-};
+function clampToViewport(win) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const width = Math.min(win.width, vw);
+  const height = Math.min(win.height, vh);
+
+  const x = Math.min(Math.max(0, win.x), vw - width);
+  const y = Math.min(Math.max(0, win.y), vh - height);
+
+  return { ...win, x, y, width, height };
+}
 
 export function FloatingWindowLayer({
   windows,
@@ -34,65 +25,104 @@ export function FloatingWindowLayer({
         .filter(w => w.visible)
         .map(win => {
           const Comp = win.Component;
+          const w = clampToViewport(win);
 
           return (
             <div
-              key={win.id}
+              key={w.id}
+              className="window"
               style={{
-                ...styles.window,
-                left: win.x,
-                top: win.y,
-                width: win.width,
-                height: win.height,
-                zIndex: win.zIndex,
+                left: w.x,
+                top: w.y,
+                width: w.width,
+                height: w.height,
+                zIndex: w.zIndex,
               }}
-              onMouseDown={() => onFocus(win.id)}
+              onMouseDown={() => onFocus(w.id)}
             >
-              {/* Drag Header */}
-              <div
-                style={styles.header}
-                onMouseDown={(e) => {
-                  const sx = e.clientX;
-                  const sy = e.clientY;
+              {/* DRAG HEADER */}
+              {w.draggable !== false && (
+                <div
+                  className="header"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
 
-                  const ox = win.x;
-                  const oy = win.y;
+                    const sx = e.clientX;
+                    const sy = e.clientY;
 
-                  const move = (ev) => {
-                    onUpdate(win.id, {
-                      x: ox + ev.clientX - sx,
-                      y: oy + ev.clientY - sy,
-                    });
-                  };
+                    const ox = w.x;
+                    const oy = w.y;
 
-                  const up = () => {
-                    window.removeEventListener('mousemove', move);
-                    window.removeEventListener('mouseup', up);
-                  };
+                    const move = (ev) => {
+                      onUpdate(w.id, {
+                        x: ox + ev.clientX - sx,
+                        y: oy + ev.clientY - sy,
+                      });
+                    };
 
-                  window.addEventListener('mousemove', move);
-                  window.addEventListener('mouseup', up);
-                }}
-              >
-                <span>{win.id}</span>
+                    const up = () => {
+                      window.removeEventListener('mousemove', move);
+                      window.removeEventListener('mouseup', up);
+                    };
 
-                <button
-                  onClick={() => onClose(win.id)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#fff',
-                    cursor: 'pointer',
+                    window.addEventListener('mousemove', move);
+                    window.addEventListener('mouseup', up);
                   }}
                 >
-                  ✕
-                </button>
+                  <span>{w.id}</span>
+
+                  {/* centered hidden button */}
+                  <button
+                    className="hiddenBtn"
+                    onClick={() => onClose(w.id)}
+                  >
+                    hidden
+                  </button>
+
+                </div>
+              )}
+
+              {/* CONTENT */}
+              <div className="content" style={{ height: 'calc(100% - 36px)' }}>
+                <Comp {...w.props} />
               </div>
 
-              {/* Content */}
-              <div style={{ height: 'calc(100% - 36px)' }}>
-                <Comp {...win.props} />
-              </div>
+              {/* RESIZE HANDLE */}
+              {w.resizable !== false && (
+                <div
+                  className="resizeHandle"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+
+                    const sx = e.clientX;
+                    const sy = e.clientY;
+
+                    const ow = w.width;
+                    const oh = w.height;
+
+                    const minW = w.minWidth;
+                    const minH = w.minHeight;
+
+                    const move = (ev) => {
+                      const newW = Math.max(minW, ow + ev.clientX - sx);
+                      const newH = Math.max(minH, oh + ev.clientY - sy);
+
+                      onUpdate(w.id, {
+                        width: newW,
+                        height: newH,
+                      });
+                    };
+
+                    const up = () => {
+                      window.removeEventListener('mousemove', move);
+                      window.removeEventListener('mouseup', up);
+                    };
+
+                    window.addEventListener('mousemove', move);
+                    window.addEventListener('mouseup', up);
+                  }}
+                />
+              )}
             </div>
           );
         })}

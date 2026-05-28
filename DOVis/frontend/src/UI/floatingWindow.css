@@ -1,0 +1,57 @@
+.window {
+  position: absolute;
+  background: #0b1220;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.header {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: #1e293b;
+  cursor: grab;
+  color: #fff;
+  font-size: 12px;
+  user-select: none;
+
+  position: relative; /* 用于 absolute 居中按钮 */
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+}
+
+/* ===== 居中 hidden button ===== */
+
+.hiddenBtn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: 4px 10px;
+  border-radius: 6px;
+
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+
+  transition: all 0.15s ease;
+}
+
+.hiddenBtn:hover {
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+}

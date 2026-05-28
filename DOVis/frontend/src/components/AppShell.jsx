@@ -18,7 +18,7 @@ function AppShell() {
   const {
     windows,
     open,
-    close,
+    hidden,
     update,
     focus,
   } = useWindowManager();
@@ -60,6 +60,7 @@ function AppShell() {
       ====================================== */}
       {viewer && (
         <CesiumAPIProvider viewer={viewer}>
+
           {/* ======================================
               Launcher
           ====================================== */}
@@ -74,6 +75,7 @@ function AppShell() {
             <ModuleLauncher
               modules={moduleConfig}
               onOpen={open}
+              hidden={hidden}
             />
           </div>
 
@@ -82,10 +84,11 @@ function AppShell() {
           ====================================== */}
           <FloatingWindowLayer
             windows={windows}
-            onClose={close}
+            onClose={hidden}
             onUpdate={update}
             onFocus={focus}
           />
+
         </CesiumAPIProvider>
       )}
     </div>

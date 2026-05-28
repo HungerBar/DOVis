@@ -41,7 +41,7 @@ export default function CesiumAPIProvider({
         const renderer = getRenderer();
 
         // 1. 隐藏地球表面
-        // setGlobeVisible(false);
+        setGlobeVisible(false);
 
         return renderer.load(url, {
           autoZoom: false,
