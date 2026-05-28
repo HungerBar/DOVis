@@ -54,6 +54,7 @@ export default function IsoSurfaceModule({hidden}) {
       }}>
         x
       </button>
+
       <div
         style={{
           display: 'flex',

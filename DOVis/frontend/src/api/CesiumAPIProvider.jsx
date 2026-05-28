@@ -20,7 +20,6 @@ export default function CesiumAPIProvider({
 
     viewer.scene.globe.show = visible;
 
-    // 可选：同时控制影像层（更“干净”的隐藏）
     viewer.imageryLayers?.forEach?.((layer) => {
       layer.show = visible;
     });
