@@ -4,7 +4,7 @@ import hashlib
 import shutil
 import numpy as np
 
-from backend.isoGeometry.marching import run_marching_cubes
+from backend.isoGeometry.marching import run_marching_cubes_ecef
 from backend.isoExport.gltf_export import export_glb
 from backend.isoExport.b3dm_export import glb_to_b3dm
 from backend.isoExport.tileset import build_tileset
@@ -48,9 +48,9 @@ def export_tileset(time_idx: int, iso_value: float, out_root: str = "tiles"):
 
     try:
         # =================================================
-        # 1. marching cubes → ENU (NOT ECEF)
+        # 1. marching cubes → ECEF mesh + META
         # =================================================
-        verts, faces, meta = run_marching_cubes(time_idx, iso_value)
+        verts, faces, meta = run_marching_cubes_ecef(time_idx, iso_value)
 
         verts = np.asarray(verts, dtype=np.float64)
         faces = np.asarray(faces, dtype=np.uint32)
@@ -59,22 +59,24 @@ def export_tileset(time_idx: int, iso_value: float, out_root: str = "tiles"):
             raise ValueError("Empty mesh")
 
         if not np.all(np.isfinite(verts)):
-            raise ValueError("Invalid ENU vertices")
+            raise ValueError("Invalid ECEF vertices")
 
         # =================================================
-        # 2. ENU validation (LOCAL SPACE ONLY)
+        # 2. USE META DIRECTLY (核心修改)
         # =================================================
-        center = verts.mean(axis=0)
-        radius = np.max(np.linalg.norm(verts - center, axis=1))
+        bounding_sphere = meta["bounding_sphere"]
+
+        center = np.asarray(bounding_sphere["center"], dtype=np.float64)
+        radius = float(bounding_sphere["radius"])
 
         print("====================================")
-        print("ENU CHECK (LOCAL SPACE)")
+        print("ECEF CHECK (FROM META)")
         print("center:", center)
         print("radius:", radius)
         print("====================================")
 
         # =================================================
-        # 3. export GLB (LOCAL ENU)
+        # 3. export GLB (ECEF)
         # =================================================
         export_glb(vertices=verts, faces=faces, path=glb_path, origin=None)
 
@@ -90,20 +92,18 @@ def export_tileset(time_idx: int, iso_value: float, out_root: str = "tiles"):
             f.write(b3dm_bytes)
 
         # =================================================
-        # 5. tileset (ENU GEOREFERENCE MODE)
+        # 5. build tileset USING META
         # =================================================
-
-        lon0 = meta["lon0"] if isinstance(meta, dict) else 80.0
-        lat0 = meta["lat0"] if isinstance(meta, dict) else -20.0
-        height0 = 0.0
-
-        
-
         tileset = build_tileset(
-            b3dm_uri = "iso.b3dm",
-            mc_result = meta,
-            geometric_error = float(radius)
-            )
+            b3dm_uri="iso.glb",
+            mc_result={
+                "bounding_sphere": {
+                    "center_ecef": center.tolist(),
+                    "radius": radius,
+                }
+            },
+            geometric_error=radius,
+        )
 
         tileset = json.loads(json.dumps(tileset, default=to_py))
 
@@ -113,7 +113,7 @@ def export_tileset(time_idx: int, iso_value: float, out_root: str = "tiles"):
     except Exception as e:
         if os.path.exists(out_dir):
             shutil.rmtree(out_dir)
-        raise RuntimeError(f"Failed ENU tileset generation: {e}") from e
+        raise RuntimeError(f"Failed ECEF tileset generation: {e}") from e
 
     return _build_result(key, glb_path, b3dm_path, tileset_path, False)
 

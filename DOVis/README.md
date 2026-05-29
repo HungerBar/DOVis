@@ -17,6 +17,8 @@
 - `\iso*`: 这些目录是我的工具函数目录
 - `services`: 具体的实现后端复杂功能的串联层, 是否设计这一接口随你
 
+> 你完全可以按照你自己喜欢的方式组织工具函数, 保证上面关于 api 部分的统一即可
+
 ## frontend
 
 `pnpm install` 自动下载所有依赖
@@ -24,6 +26,7 @@
 - `\config`: 这是一些 config 参数
   - `module`: 你拓展的模块, 需要在这里通过增加 config 注册
   - `cesium`: 这是关于 Cesium 的一些 config
+  - `windowPolicy.js`: 这是关于组件初始化面板的一些设置
 
 ### 整体架构
 
@@ -41,7 +44,7 @@
 
 ### 如何拓展模块
 
-__你只用在 module.js 中注册你的模块, 并在 module 下提供一个对应的模块汇总文件即可__
+如何拓展模块呢? 在原有实现基础上 __你只用在 module.js 中注册你的模块, 并在 module 下提供一个对应的模块汇总文件即可__
 
 ```js
 // \config\module.js
@@ -56,14 +59,40 @@ export const moduleConfig = [
 ]
 ```
 
-这是提供给 ModuleLauncher 的 config, props 按理来说应该就是完全空的, 而你提供的 module 负责:
+这是提供给 ModuleLauncher 的 config, id 和 title 不要重复, props 按理来说应该就是完全空的 (默认会提供一个用来清除面板的hook), 而你提供的 module 负责:
 
-- 数据状态
-- 控制面板
-- 本地渲染
+- 控制面板渲染: 你只用考虑面板如何渲染即可
 - 与Cesium 的交互
+- 最重要的: 合理的关闭按钮, 由于不想每次关闭都释放所有缓存, 请你自己定义关于非面板资源的释放, 并在你的 `module.jsx` 中显示定义一个 button 负责资源的释放, 我提供了一个关于面板隐藏的hook (就是面板上的 hidden), 下面是我的返回 button 的示例
 
-并且由于前面的耦合设计, 这里你只要返回所有点开你对应模块之后展示在屏幕上的所有内容即可
+```jsx
+export default function IsoSurfaceModule({hidden}) {
+  ...
+  return(
+    <div>
+      <button
+        style={{
+          position: 'absolute',
+          top: 1,
+          right: 1,
+          zIndex: 5,
+          background: 'transparent',
+          border: 'none',
+
+          color: '#fff',
+          cursor: 'pointer'
+        }} 
+        onClick={() => {
+          reset();
+          hidden();
+        }}>
+        x
+      </button>
+    </div>
+  )
+}
+```
+
 
 > 这里可以结合我的 `IsoSurfaceModule` 的返回来理解 (只用看返回即可)
 > 希望你的所有跟面板渲染相关的都暴露在这一层, UI 设计的同学也只用更改这个 module 中的 UI 即可
@@ -84,7 +113,7 @@ export const moduleConfig = [
   - `CesiumTilesRenderer`: 这是我将 3DTiles 渲染出来的地方
 
 > 如果你只是想获得 Cesium canvas上的数据, 那么只要在 CesiumAPIProvider 上拓展即可
-> 如果你像我一下希望加载一些资源在 Cesium 上 (即赋予 viwer 一些属性的值), 那么你需要向我一样提供一个 CesiumTilesRenderer, 并且在 CesiumRecovery 中提供一个类, 规范如果加载失败的话会发生什么 (否则会出现神秘 bug), 然后再在 CesiumAPIProvider 上拓展对应的功能
+> 如果你像我一下希望加载一些资源在 Cesium 上 (即赋予 viwer 某些属性值), 那么你需要向我一样提供一个 CesiumTilesRenderer, 并且在 CesiumRecovery 中提供一个类, 规范如果加载失败的话会发生什么 (否则会出现神秘 bug), 然后再在 CesiumAPIProvider 上拓展对应的功能
 > 我觉得另外 3 个功能应该不会涉及加载 3dtiles 之外的加载需求, 低氧区边界应该也能作为 3dtiles 加载? 所以我这里没做特意的解耦
  
 为了让 api 能作为 context 传递, 我设计了 `useCesiumAPI`
@@ -110,7 +139,7 @@ export const moduleConfig = [
 - `FloatingWindowLayer` 主要管理的就是各个功能展示的窗口, 我目前只是设计了一个最小可行版本(与其配合的 hook 是 `\hooks\useWindowManager`)
 - `ModuleLauncher` 这个模块负责统一加载所有模块
 
-做整体的美化, 并对各个模块暴露出来的 module (`\module`) 文件夹下的组件做美化
+做整体的美化, 并对各个模块暴露出来的 module (`\module`) 文件夹下的组件做美化, 以及给一个 Welcome page
 
 ### 溶解氧垂直剖面点
 

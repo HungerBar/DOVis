@@ -1,8 +1,11 @@
 import numpy as np
-import json
-from skimage import measure
 from pyproj import Transformer
 from backend.core.dataset import get_ds
+import pyvista as pv
+
+# =========================================================
+# CRS transforms
+# =========================================================
 
 to_ecef = Transformer.from_crs(
     "EPSG:4979",
@@ -10,199 +13,403 @@ to_ecef = Transformer.from_crs(
     always_xy=True,
 )
 
-def safe(obj):
-    """convert numpy types to python native types for printing"""
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    if isinstance(obj, (np.floating, np.integer)):
-        return obj.item()
-    return obj
+to_geo = Transformer.from_crs(
+    "EPSG:4978",
+    "EPSG:4979",
+    always_xy=True,
+)
 
 
-def print_metadata(meta):
-    meta_safe = {k: safe(v) for k, v in meta.items()}
-    print("\n========== TILE METADATA ==========")
-    print(json.dumps(meta_safe, indent=2))
-    print("===================================\n")
+# =========================================================
+# geometry helpers
+# =========================================================
 
-def run_marching_cubes(time_idx: int, iso_value: float, verbose=True):
+
+def triangle_area(a, b, c):
+
+    return (
+        np.linalg.norm(
+            np.cross(
+                b - a,
+                c - a,
+            )
+        )
+        * 0.5
+    )
+
+
+def find_non_collinear_points(
+    verts_ecef,
+    min_area=1e3,
+):
+
+    n = len(verts_ecef)
+
+    if n < 3:
+        raise ValueError("Not enough vertices")
+
+    # -----------------------------------------------------
+    # initial guess
+    # -----------------------------------------------------
+
+    idx0 = 0
+    idx1 = n // 3
+    idx2 = 2 * n // 3
+
+    p0 = verts_ecef[idx0]
+    p1 = verts_ecef[idx1]
+    p2 = verts_ecef[idx2]
+
+    area = triangle_area(
+        p0,
+        p1,
+        p2,
+    )
+
+    if area > min_area:
+
+        return (
+            np.array([p0, p1, p2]),
+            [idx0, idx1, idx2],
+        )
+
+    # -----------------------------------------------------
+    # brute-force sparse search
+    # -----------------------------------------------------
+
+    step = max(1, n // 50)
+
+    for i in range(0, n, step):
+
+        for j in range(i + 1, n, step):
+
+            for k in range(j + 1, n, step):
+
+                a = verts_ecef[i]
+                b = verts_ecef[j]
+                c = verts_ecef[k]
+
+                area = triangle_area(
+                    a,
+                    b,
+                    c,
+                )
+
+                if area > min_area:
+
+                    return (
+                        np.array([a, b, c]),
+                        [i, j, k],
+                    )
+
+    raise ValueError("Could not find non-collinear points")
+
+
+# =========================================================
+# main
+# =========================================================
+
+
+def run_marching_cubes_ecef(
+    time_idx: int,
+    iso_value: float,
+    verbose=True,
+):
+
     ds = get_ds()
 
-    vol = ds["o2_pred"].isel(time=time_idx).values  # (D, lat, lon)
+    # =====================================================
+    # 1. load volume
+    # =====================================================
+
+    vol = ds["o2_pred"].isel(time=time_idx).values
+
     depth = ds.depth.values
     lat = ds.lat.values
     lon = ds.lon.values
 
-    # =========================================================
-    # 1. NaN 处理
-    # =========================================================
-    nan_count = np.isnan(vol).sum()
-    if nan_count > 0:
-        if verbose:
-            print(f"[NaN] detected: {nan_count}")
-
-        fill_val = np.nanmin(vol) - 1.0
-        vol = np.nan_to_num(vol, nan=fill_val)
-
-    # =========================================================
-    # 2. Marching Cubes（index space）
-    # =========================================================
-    verts, faces, _, _ = measure.marching_cubes(
-        vol, level=iso_value, spacing=(1.0, 1.0, 1.0)
+    vol = np.nan_to_num(
+        vol,
+        nan=np.nanmin(vol) - 1.0,
     )
 
-    # =========================================================
-    # 3. index -> grid coordinate
-    # =========================================================
-    vd = np.clip(verts[:, 0], 0, len(depth) - 1)
-    vh = np.clip(verts[:, 1], 0, len(lat) - 1)
-    vw = np.clip(verts[:, 2], 0, len(lon) - 1)
+    nz, ny, nx = vol.shape
 
-    d0 = np.floor(vd).astype(int)
-    h0 = np.floor(vh).astype(int)
-    w0 = np.floor(vw).astype(int)
+    # =====================================================
+    # 2. build structured grid
+    # =====================================================
 
-    d1 = np.clip(d0 + 1, 0, len(depth) - 1)
-    h1 = np.clip(h0 + 1, 0, len(lat) - 1)
-    w1 = np.clip(w0 + 1, 0, len(lon) - 1)
+    grid = pv.ImageData()
 
-    td = vd - d0
-    th = vh - h0
-    tw = vw - w0
+    grid.dimensions = (
+        nx,
+        ny,
+        nz,
+    )
 
-    # =========================================================
-    # 4. 三线性插值（物理坐标）
-    # =========================================================
-    def interp(arr):
-        return (
-            arr[d0, h0, w0] * (1 - td) * (1 - th) * (1 - tw)
-            + arr[d1, h0, w0] * td * (1 - th) * (1 - tw)
-            + arr[d0, h1, w0] * (1 - td) * th * (1 - tw)
-            + arr[d0, h0, w1] * (1 - td) * (1 - th) * tw
-            + arr[d1, h1, w0] * td * th * (1 - tw)
-            + arr[d1, h0, w1] * td * (1 - th) * tw
-            + arr[d0, h1, w1] * (1 - td) * th * tw
-            + arr[d1, h1, w1] * td * th * tw
+    grid.spacing = (
+        1.0,
+        1.0,
+        1.0,
+    )
+
+    # IMPORTANT:
+    # PyVista/VTK internally uses Fortran order
+
+    grid.point_data["field"] = vol.transpose(2, 1, 0).ravel(order="F")
+
+    # =====================================================
+    # 3. marching cubes
+    # =====================================================
+
+    mesh = grid.contour(isosurfaces=[iso_value])
+
+    verts = np.asarray(mesh.points)
+
+    faces = mesh.faces.reshape(-1, 4)[:, 1:4]
+
+    if len(verts) == 0:
+        raise ValueError("Empty contour mesh")
+
+    # =====================================================
+    # 4. index space -> geographic coords
+    # =====================================================
+
+    ix = verts[:, 0]
+    iy = verts[:, 1]
+    iz = verts[:, 2]
+
+    # -----------------------------------------------------
+    # NOTE:
+    # Depending on VTK axis conventions,
+    # you may need:
+    #
+    # lat <- iz
+    # h   <- iy
+    #
+    # if orientation looks wrong
+    # -----------------------------------------------------
+
+    lon_v = np.interp(
+        ix,
+        np.arange(nx),
+        lon,
+    )
+
+    lat_v = np.interp(
+        iy,
+        np.arange(ny),
+        lat,
+    )
+
+    # ocean depth -> ellipsoidal height
+
+    h_v = -np.interp(
+        iz,
+        np.arange(nz),
+        depth,
+    )
+
+    # =====================================================
+    # 5. geographic -> ECEF
+    # =====================================================
+
+    x, y, z = to_ecef.transform(
+        lon_v,
+        lat_v,
+        h_v,
+    )
+
+    verts_ecef = np.vstack(
+        [
+            x,
+            y,
+            z,
+        ]
+    ).T
+
+    # =====================================================
+    # OPTIONAL:
+    # handedness / axis debugging
+    # =====================================================
+
+    DEBUG_TRANSFORM = None
+
+    if DEBUG_TRANSFORM == "swap_yz":
+
+        verts_ecef = verts_ecef[:, [0, 2, 1]]
+
+    elif DEBUG_TRANSFORM == "swap_xyz":
+
+        verts_ecef = verts_ecef[:, [1, 2, 0]]
+
+    elif DEBUG_TRANSFORM == "flip_x":
+
+        verts_ecef[:, 0] *= -1
+
+    elif DEBUG_TRANSFORM == "flip_y":
+
+        verts_ecef[:, 1] *= -1
+
+    elif DEBUG_TRANSFORM == "flip_z":
+
+        verts_ecef[:, 2] *= -1
+
+    elif DEBUG_TRANSFORM == "left_to_right":
+
+        verts_ecef = np.column_stack(
+            [
+                verts_ecef[:, 0],
+                verts_ecef[:, 2],
+                -verts_ecef[:, 1],
+            ]
         )
 
-    lon_v = interp(lon[None, None, :].repeat(len(depth), 0).repeat(len(lat), 1))
-    lat_v = interp(lat[None, :, None].repeat(len(depth), 0).repeat(len(lon), 2))
-    depth_v = interp(depth[:, None, None].repeat(len(lat), 1).repeat(len(lon), 2))
+    # =====================================================
+    # 6. bounding sphere
+    # =====================================================
 
-    # =========================================================
-    # 5. ENU 构建
-    # =========================================================
-
-    lon0 = float(np.mean(lon_v))
-    lat0 = float(np.mean(lat_v))
-    h0 = 0.0
-
-    # local origin in ECEF
-    x0, y0, z0 = to_ecef.transform(lon0, lat0, h0)
-
-    # vertices in ECEF
-    height_v = -depth_v
-    x, y, z = to_ecef.transform(lon_v, lat_v, height_v)
-
-    dx = x - x0
-    dy = y - y0
-    dz = z - z0
-
-    # ECEF → ENU rotation
-    lon_r = np.deg2rad(lon0)
-    lat_r = np.deg2rad(lat0)
-
-    slon = np.sin(lon_r)
-    clon = np.cos(lon_r)
-    slat = np.sin(lat_r)
-    clat = np.cos(lat_r)
-
-    R = np.array(
-        [
-            [-slon, clon, 0],
-            [-slat * clon, -slat * slon, clat],
-            [clat * clon, clat * slon, slat],
-        ]
+    center = np.array(
+        [0.0, 0.0, 0.0],
+        dtype=np.float64,
     )
 
-    verts_enu = (R @ np.vstack([dx, dy, dz])).T
+    radius = float(
+        np.linalg.norm(
+            verts_ecef,
+            axis=1,
+        ).max()
+    )
 
-    # =========================================================
-    # 6. 地心相关（关键：全部以 ECEF 为基准）
-    # =========================================================
+    # =====================================================
+    # 7. choose 3 non-collinear control points
+    # =====================================================
 
-    # Earth center
-    earth_center_ecef = np.array([0.0, 0.0, 0.0])
+    control_src, control_indices = find_non_collinear_points(verts_ecef)
 
-    # direction: north in ECEF
-    north_ecef = np.array([-slat * clon, -slat * slon, clat])
+    control_dst = control_src.copy()
 
-    # direction: meridian on equator (lon0, lat=0)
-    meridian_ecef = np.array([clon, slon, 0.0])
-
-    # =========================================================
-    # 7. ECEF → ENU 投影
-    # =========================================================
-
-    center_enu = R @ (earth_center_ecef - np.array([x0, y0, z0]))
-    north_enu = R @ north_ecef
-    meridian_enu = R @ meridian_ecef
-
-    north_enu = north_enu / (np.linalg.norm(north_enu) + 1e-12)
-    meridian_enu = meridian_enu / (np.linalg.norm(meridian_enu) + 1e-12)
-
-    # =========================================================
-    # 8. bounding sphere（地心为球心 ✔）
-    # =========================================================
-
-    verts_ecef = np.vstack([x, y, z]).T
-    radius = float(np.max(np.linalg.norm(verts_ecef, axis=1)))
-
-    # =========================================================
-    # 9. sanity check
-    # =========================================================
-    if not np.all(np.isfinite(verts_enu)):
-        raise ValueError("Invalid ENU vertices detected")
+    # =====================================================
+    # 8. debug output
+    # =====================================================
 
     if verbose:
-        print("\n[RESULT]")
-        print("verts:", len(verts_enu))
+
+        centroid = np.mean(
+            verts_ecef,
+            axis=0,
+        )
+
+        lon_c, lat_c, h_c = to_geo.transform(
+            centroid[0],
+            centroid[1],
+            centroid[2],
+        )
+
+        print("\n====================================")
+
+        print("PYVISTA MC RESULT")
+
+        print("====================================")
+
+        print("vertices:", len(verts_ecef))
+
         print("faces:", len(faces))
-        print("radius:", radius)
-        print("origin:", (lon0, lat0))
 
-    # =========================================================
-    # 10. return
-    # =========================================================
-
-    
-    meta = {
-        # local frame
-        "lon0": lon0,
-        "lat0": lat0,
-        "height0": 0.0,
-
-        # earth center (ECEF)
-        "earth_center_ecef": [0.0, 0.0, 0.0],
-
-        # earth center in ENU
-        "earth_center_enu": center_enu.tolist(),
-
-        # direction vectors in ENU
-        "north_enu": north_enu.tolist(),
-        "meridian_enu": meridian_enu.tolist(),
-
-        # optional: ECEF directions
-        "north_ecef": north_ecef.tolist(),
-        "meridian_ecef": meridian_ecef.tolist(),
-
+        # -------------------------------------------------
         # bounding sphere
+        # -------------------------------------------------
+
+        print("\nBOUNDING SPHERE")
+
+        print("center:", center)
+
+        print("radius:", radius)
+
+        # -------------------------------------------------
+        # centroid
+        # -------------------------------------------------
+
+        print("\nMESH CENTROID")
+
+        print("ECEF:", centroid)
+
+        print("lon:", lon_c)
+
+        print("lat:", lat_c)
+
+        print("height:", h_c)
+
+        # -------------------------------------------------
+        # control points
+        # -------------------------------------------------
+
+        print("\n====================================")
+
+        print("CONTROL POINTS")
+
+        print("====================================")
+
+        for i in range(3):
+
+            src = control_src[i]
+
+            lon_p, lat_p, h_p = to_geo.transform(
+                src[0],
+                src[1],
+                src[2],
+            )
+
+            print(f"\nP{i}")
+
+            print(f"VERTEX INDEX : " f"{control_indices[i]}")
+
+            print("ECEF : " f"X={src[0]:.6f}, " f"Y={src[1]:.6f}, " f"Z={src[2]:.6f}")
+
+            print(
+                "GEO  : " f"lon={lon_p:.6f}, " f"lat={lat_p:.6f}, " f"height={h_p:.3f}"
+            )
+
+        # -------------------------------------------------
+        # triangle area
+        # -------------------------------------------------
+
+        area = triangle_area(
+            control_src[0],
+            control_src[1],
+            control_src[2],
+        )
+
+        print("\nTRIANGLE AREA")
+
+        print(f"{area:.6f} m²")
+
+    # =====================================================
+    # 9. metadata
+    # =====================================================
+
+    meta = {
+        "frame": "ECEF",
         "bounding_sphere": {
-            "center_ecef": [0.0, 0.0, 0.0],
-            "radius": radius
-        }
+            "center": center.tolist(),
+            "radius": radius,
+        },
+        "vertices": len(verts_ecef),
+        "faces": len(faces),
+        "control_points": [
+            {
+                "id": i,
+                "vertex_index": int(control_indices[i]),
+                "source_ecef": control_src[i].tolist(),
+                "target_ecef": control_dst[i].tolist(),
+            }
+            for i in range(3)
+        ],
+        "note": "ECEF mesh with non-collinear control points",
     }
 
-    print_metadata(meta)
-
-    return verts_enu, faces, meta
+    return (
+        verts_ecef,
+        faces,
+        meta,
+    )

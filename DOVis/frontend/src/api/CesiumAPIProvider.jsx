@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import {
   useMemo,
   useRef,
@@ -14,6 +15,16 @@ export default function CesiumAPIProvider({
 }) {
   const rendererRef = useRef(null);
 
+  const setGlobeVisible = (visible) => {
+    if (!viewer?.scene?.globe) return;
+
+    viewer.scene.globe.show = visible;
+
+    viewer.imageryLayers?.forEach?.((layer) => {
+      layer.show = visible;
+    });
+  };
+
   const api = useMemo(() => {
     if (!viewer) return null;
 
@@ -21,7 +32,6 @@ export default function CesiumAPIProvider({
       if (!rendererRef.current) {
         rendererRef.current = new CesiumTilesRenderer(viewer);
       }
-
       return rendererRef.current;
     };
 
@@ -29,14 +39,21 @@ export default function CesiumAPIProvider({
       loadTileset: async (url) => {
         const renderer = getRenderer();
 
+        // 1. 隐藏地球表面
+        setGlobeVisible(false);
+
         return renderer.load(url, {
-          autoZoom: true,
+          autoZoom: false,
         });
       },
 
       clearTileset: () => {
         rendererRef.current?.destroy?.();
         rendererRef.current = null;
+
+        // 2. 恢复地球表面
+        setGlobeVisible(true);
+        console.log("clear");
       },
 
       tilesRecover: () => {
@@ -48,6 +65,9 @@ export default function CesiumAPIProvider({
         );
 
         recovery.recover();
+
+        // 3. 恢复地球表面
+        setGlobeVisible(true);
       },
 
       flyHome: () => {

@@ -12,7 +12,7 @@ export default class CesiumEngine {
       navigationHelpButton: false,
       geocoder: false,
     });
-
+    this.viewer.scene.globe.enableLighting = false;
     //this.viewer.scene.globe.show = false;
   }
 

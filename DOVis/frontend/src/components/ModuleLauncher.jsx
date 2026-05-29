@@ -1,4 +1,6 @@
-const ModuleLauncher = ({ modules, onOpen }) => {
+// 控制的是那个上面的按钮的格式
+
+const ModuleLauncher = ({ modules, onOpen, hidden}) => {
   return (
     <div style={{
       display: 'flex',
@@ -14,7 +16,11 @@ const ModuleLauncher = ({ modules, onOpen }) => {
             onOpen({
               id: m.id,
               Component: m.component,
-              props: m.props || {},
+              props: {
+                ...(m.props || {}),
+                
+                hidden: () => hidden(m.id),
+              },
             })
           }
           style={{

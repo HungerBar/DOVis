@@ -5,11 +5,12 @@ import trimesh
 
 def export_glb(vertices, faces, path=None, origin=None):
     """
-    Export Cesium-compatible GLB (LOCAL ENU coordinates)
+    Export Cesium-compatible GLB (ECEF coordinates)
 
     IMPORTANT:
-    - vertices MUST be in ENU (meters)
-    - origin is used only for debugging / external metadata
+    - vertices MUST already be in ECEF (meters)
+    - NO ENU, NO local transform
+    - NO coordinate conversion
     """
 
     # =========================================================
@@ -22,13 +23,13 @@ def export_glb(vertices, faces, path=None, origin=None):
         raise ValueError("Empty mesh input")
 
     # =========================================================
-    # 2. vertex colors (debug)
+    # 2. vertex colors (debug only)
     # =========================================================
     YELLOW = np.array([255, 255, 0, 255], dtype=np.uint8)
     colors = np.tile(YELLOW, (len(vertices), 1))
 
     # =========================================================
-    # 3. CRITICAL: NO GEOMETRY PROCESSING
+    # 3. build mesh (NO processing)
     # =========================================================
     mesh = trimesh.Trimesh(
         vertices=vertices,
@@ -39,15 +40,19 @@ def export_glb(vertices, faces, path=None, origin=None):
     )
 
     # =========================================================
-    # 4. normals (safe, no vertex modification)
+    # 4. normals (safe, no geometry modification)
     # =========================================================
     _ = mesh.vertex_normals
 
     # =========================================================
-    # 5. cleanup (safe subset only)
+    # 5. minimal cleanup ONLY (ECEF-safe)
     # =========================================================
     mesh.remove_degenerate_faces()
-    mesh.remove_unreferenced_vertices()
+
+    # ⚠️ IMPORTANT:
+    # do NOT remove_unreferenced_vertices in scientific meshes blindly
+    # it may break topology consistency after MC
+    # mesh.remove_unreferenced_vertices()
 
     if len(mesh.vertices) == 0:
         raise ValueError("Mesh has no valid vertices after cleanup.")
@@ -74,22 +79,22 @@ def export_glb(vertices, faces, path=None, origin=None):
             f.write(glb_bytes)
 
     # =========================================================
-    # 8. debug info (LOCAL SPACE)
+    # 8. debug info (ECEF SPACE)
     # =========================================================
     print("====================================")
-    print("GLB export success (LOCAL ENU MODE)")
+    print("GLB export success (ECEF MODE)")
     print("vertices:", len(mesh.vertices))
     print("faces:", len(mesh.faces))
 
     vmin = mesh.vertices.min(axis=0)
     vmax = mesh.vertices.max(axis=0)
 
-    print("ENU X (East) range:", vmin[0], "~", vmax[0])
-    print("ENU Y (North) range:", vmin[1], "~", vmax[1])
-    print("ENU Z (Up) range:", vmin[2], "~", vmax[2])
+    print("ECEF X range:", vmin[0], "~", vmax[0])
+    print("ECEF Y range:", vmin[1], "~", vmax[1])
+    print("ECEF Z range:", vmin[2], "~", vmax[2])
 
     if origin is not None:
-        print("origin (lon, lat, h):", origin)
+        print("origin (debug only):", origin)
 
     print("glb size:", len(glb_bytes))
     print("====================================")
