@@ -94,11 +94,12 @@ def get_section_profile(points: list[dict], time: str) -> dict:
             lon = points[seg_idx]["lon"] + seg_frac * (points[seg_idx + 1]["lon"] - points[seg_idx]["lon"])
         else:
             lat, lon = points[0]["lat"], points[0]["lon"]
+            target_dist = 0.0
 
         profile = _generate_do_profile(lat, lon)
         for entry in profile:
             section.append({
-                "distance_km": round(cumulative_km[seg_idx] + seg_idx * 0.1, 1),
+                "distance_km": round(target_dist, 1),
                 "depth": entry["depth"],
                 "oxygen": entry["oxygen"],
             })
