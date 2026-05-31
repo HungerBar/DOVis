@@ -167,6 +167,8 @@ export default function IsoSurfaceModule({hidden}) {
 
 > 想了下感觉你的工作量也不多, 可以帮帮 UI 设计的同学做下迁移与合并
 
+---
+
 #### 后端细节
 
 1. api
@@ -201,17 +203,28 @@ export default function IsoSurfaceModule({hidden}) {
 - 基本架构
   1. State
     - 当前系统的状态，全局 + EOF 局部
-  2. Hook
+  2. Hook `useEOF.js`
     - 读取状态、更新状态、调用后端模块的 api 、操作 cesium
-  3. UI
+  3. UI `eofControlPanel.jsx`
     - 根据用户交互调用 Hook
-  4. Module
+  4. Module `eofModule.jsx`
     - 连接 UI 和 Hook
+
+>安装 eof 库 `pip install eofs`
+>安装 echarts `pnpm add echarts`
 
 ##### 设计
 
 1. 用户操作
   - 选择数据源（全局）
-  - 选择 EOF 模式：横剖 or 纵剖）
-  - 选择位置：深度 or 经纬度）
+  - 选择 EOF 模式：横剖 or 纵剖
+  - 选择位置：深度 or 经纬度
   - 选择时间跨度
+
+2. 结果可视化（仅可视化前三个mode）
+  - 空间模态有三个按钮，切换图
+  - 时间模态有三个按钮，对应隐藏曲线
+
+[测试脚本1](./test.py)
+
+[测试脚本2](./test_chart.py)

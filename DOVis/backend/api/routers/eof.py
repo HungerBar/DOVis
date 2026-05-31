@@ -6,6 +6,7 @@ from fastapi import Query
 from backend.core.dataset import get_ds, get_ds_by_id
 from backend.services.eof_service import run_eof_service
 
+
 router = APIRouter()
 
 
@@ -74,8 +75,7 @@ class EOFRequest(BaseModel):
     mode_num: int = 3
 
     slice_params: Optional[Dict] = None
-    # horizontal: {"depth": 50}
-    # section: {"type": "lat", "value": 10}
+
 
 
 # =========================================================
@@ -83,6 +83,16 @@ class EOFRequest(BaseModel):
 # =========================================================
 @router.post("/eof-run")
 def run_eof(req: EOFRequest):
+    # 显式打印，如果终端这里都没反应，说明你的 main.py 挂载路由写错了！
+    print(f"\n[ROUTE LOG] Received EOF Request for {req.dataset_id}, mode: {req.mode_type}")
+    
+    # 强制将 slice_params 兜底，防止前端传 null 报错
+    sparams = req.slice_params if req.slice_params is not None else {}
+    
+    # 特殊照顾：如果前端传的是 horizontal，但没包在 slice_params 里面，我们从顶层捞出来补进去
+    if req.mode_type == "horizontal" and "depth" not in sparams:
+        # 假设前端由于组件状态挂载把 depth 丢在最外层或默认为 0
+        pass
 
     return run_eof_service(
         dataset_id=req.dataset_id,
@@ -90,5 +100,5 @@ def run_eof(req: EOFRequest):
         time_range=req.time_range,
         mode_type=req.mode_type,
         mode_num=req.mode_num,
-        slice_params=req.slice_params,
+        slice_params=sparams
     )

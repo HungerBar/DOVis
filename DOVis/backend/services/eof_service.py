@@ -1,95 +1,23 @@
 import numpy as np
+from eofs.standard import Eof
 from backend.core.dataset import get_ds_by_id
 
 
-# =========================================================
-# EOF核心计算
-# =========================================================
-def _eof(X, mode_num):
-
-    # =====================================================
-    # 1. 转 float64
-    # =====================================================
-    X = X.astype(np.float64)
-
-    # =====================================================
-    # 2. 清除 NaN / inf
-    # =====================================================
-    X = np.nan_to_num(
-        X,
-        nan=0.0,
-        posinf=0.0,
-        neginf=0.0
-    )
-
-    # =====================================================
-    # 3. anomaly
-    # EOF分析的应该是异常场
-    # =====================================================
-    X = X - np.mean(X, axis=0)
-
-    # =====================================================
-    # 4. debug信息
-    # =====================================================
-    print("========== EOF DEBUG ==========")
-    print("X shape:", X.shape)
-    print("NaN count:", np.isnan(X).sum())
-    print("Inf count:", np.isinf(X).sum())
-    print("Max:", np.max(X))
-    print("Min:", np.min(X))
-    print("================================")
-
-    # =====================================================
-    # 5. 防止空矩阵
-    # =====================================================
-    if X.shape[0] == 0 or X.shape[1] == 0:
-        raise ValueError("EOF matrix is empty")
-
-    # =====================================================
-    # 6. mode_num安全限制
-    # =====================================================
-    max_modes = min(X.shape)
-
-    if mode_num > max_modes:
-        mode_num = max_modes
-
-    # =====================================================
-    # 7. SVD
-    # =====================================================
-    U, S, Vt = np.linalg.svd(X, full_matrices=False)
-
-    # =====================================================
-    # 8. PCs
-    # =====================================================
-    pcs = U[:, :mode_num] * S[:mode_num]
-
-    # =====================================================
-    # 9. EOF modes
-    # =====================================================
-    modes = Vt[:mode_num, :]
-
-    # =====================================================
-    # 10. variance contribution
-    # =====================================================
-    variance = (S ** 2) / np.sum(S ** 2)
-
-    return modes, pcs, variance
-
-
-# =========================================================
-# 主服务
-# =========================================================
 def run_eof_service(
-    dataset_id,
-    variable,
-    time_range,
-    mode_type,
-    mode_num,
-    slice_params,
+    dataset_id: str,
+    variable: str,
+    time_range: list[int],
+    mode_type: str,
+    mode_num: int,
+    slice_params: dict
 ):
 
+    print("\n" + "="*50, flush=True)
+    print(f"🌊 EOF SERVICE START | dataset={dataset_id}, var={variable}", flush=True)
+    print("="*50 + "\n", flush=True)
+
     # =====================================================
-    # 1. 动态加载数据
+    # 1. LOAD DATA
     # =====================================================
     ds = get_ds_by_id(dataset_id)
 
@@ -99,80 +27,90 @@ def run_eof_service(
     data = ds[variable]
 
     # =====================================================
-    # 2. 时间切片
+    # 2. TIME SLICE (safe)
     # =====================================================
     t0, t1 = time_range
+    t0 = max(0, t0)
+    t1 = min(t1, ds.dims["time"] - 1)
 
-    data = data.isel(time=slice(t0, t1))
+    data = data.isel(time=slice(t0, t1 + 1))
+    T = data.shape[0]
 
-    print("After time slice:", data.shape)
+    coords = {}
 
     # =====================================================
-    # 3. 空间处理
+    # 3. SPACE PREPROCESS
     # =====================================================
     if mode_type == "horizontal":
 
-        depth = slice_params.get("depth", None)
+        depth_val = slice_params.get("depth", None)
 
-        if depth is not None and "depth" in data.dims:
-            data = data.sel(depth=depth, method="nearest")
+        if "depth" in data.dims and depth_val is not None:
+            data = data.sel(depth=depth_val, method="nearest")
 
-        print("Horizontal slice shape:", data.shape)
+        data = data.transpose("time", "lat", "lon")
 
-        # shape:
-        # (time, lat, lon)
-        X = data.values.reshape(data.shape[0], -1)
+        coords = {
+            "lat": data.coords["lat"].values.tolist(),
+            "lon": data.coords["lon"].values.tolist()
+        }
 
-        grid_shape = data.shape[1:]
+        grid_shape = (len(coords["lat"]), len(coords["lon"]))
 
     elif mode_type == "section":
 
-        dim = slice_params["type"]
-        value = slice_params["value"]
+        dim = slice_params.get("type", "lat")
+        value = slice_params.get("value", 0)
 
-        # -------------------------------------------------
-        # 纬向剖面
-        # -------------------------------------------------
         if dim == "lat":
-
             data = data.sel(lat=value, method="nearest")
+            data = data.transpose("time", "depth", "lon")
 
-            print("Lat section shape:", data.shape)
+            coords = {
+                "depth": data.coords["depth"].values.tolist(),
+                "lon": data.coords["lon"].values.tolist()
+            }
 
-            # shape:
-            # (time, depth, lon)
-            X = data.values.reshape(data.shape[0], -1)
+            grid_shape = (len(coords["depth"]), len(coords["lon"]))
 
-            grid_shape = data.shape[1:]
-
-        # -------------------------------------------------
-        # 经向剖面
-        # -------------------------------------------------
         elif dim == "lon":
-
             data = data.sel(lon=value, method="nearest")
+            data = data.transpose("time", "depth", "lat")
 
-            print("Lon section shape:", data.shape)
+            coords = {
+                "depth": data.coords["depth"].values.tolist(),
+                "lat": data.coords["lat"].values.tolist()
+            }
 
-            # shape:
-            # (time, depth, lat)
-            X = data.values.reshape(data.shape[0], -1)
-
-            grid_shape = data.shape[1:]
+            grid_shape = (len(coords["depth"]), len(coords["lat"]))
 
         else:
-            raise ValueError("invalid section type")
+            raise ValueError("Invalid section type")
 
     else:
-        raise ValueError("invalid mode_type")
+        raise ValueError("Invalid mode_type")
 
     # =====================================================
-    # 4. EOF计算
+    # 4. ⭐EOF INPUT PREPARATION (FIXED CORE)
     # =====================================================
-    modes, pcs, variance = _eof(X, mode_num)
+
+    X = data.values
+
+    # ❗1. mask（只做mask，不做任何mean！！）
+    X = np.ma.masked_invalid(X)
+
+    # ❗2. EOF自动中心化（不要手动减均值！）
+    solver = Eof(X)
 
     # =====================================================
-    # 5. reshape EOF mode
+    # 5. SOLVE EOF
+    # =====================================================
+    modes = solver.eofs(neofs=mode_num)
+    pcs = solver.pcs(npcs=mode_num)
+    variance = solver.varianceFraction()[:mode_num]
+
+    # =====================================================
+    # 6. FORMAT OUTPUT (KEEP API EXACT)
     # =====================================================
     modes_out = []
 
@@ -180,17 +118,24 @@ def run_eof_service(
 
         field = modes[i].reshape(grid_shape)
 
-        modes_out.append(
-            {
-                "mode": i + 1,
-                "field": field.tolist(),
-                "variance": float(variance[i]),
-            }
-        )
+        valid = np.ma.compressed(np.ma.masked_invalid(field))
 
-    # =====================================================
-    # 6. 返回
-    # =====================================================
+        if valid.size > 0:
+            v_min = float(valid.min())
+            v_max = float(valid.max())
+        else:
+            v_min, v_max = -0.1, 0.1
+
+        modes_out.append({
+            "mode": i + 1,
+            "field": field.tolist(),
+            "variance": float(variance[i]),
+            "v_min": v_min,
+            "v_max": v_max
+        })
+
+    print("\n✔ EOF DONE SUCCESSFULLY\n", flush=True)
+
     return {
         "dataset_id": dataset_id,
         "variable": variable,
@@ -199,4 +144,5 @@ def run_eof_service(
         "modes": modes_out,
         "pcs": pcs.tolist(),
         "grid_shape": list(grid_shape),
+        "coords": coords
     }
