@@ -178,8 +178,13 @@ export default function IsoSurfaceModule({hidden}) {
     - 时间跨度（哪一段时间的 EOF）
     - EOF 模式（水平 or 剖面）
     - 空间切片参数（深度 or 沿哪一经纬线）
-    
-    >？有些参数和其他模块可能是共用的
+    - 计算 mode 数量
+
+    >直接对参数范围和选择范围进行限制（目前是按照 do_predict.nc 写死的）。
+    >在原数据文件中将海洋深度划分为50层，因此深度参数也设计为50层，后端会映射到米。
+
+    >有些参数和其他模块可能是共用的？
+    >暂定数据源。
   
   - 返回：
     - EOF 结果（矩阵）
@@ -198,20 +203,26 @@ export default function IsoSurfaceModule({hidden}) {
 
   - ？接入一个 LLM 分析结果
 
+>安装 eof 库 `pip install eofs`
+
 #### 前端细节
 
 - 基本架构
   1. State
     - 当前系统的状态，全局 + EOF 局部
-  2. Hook `useEOF.js`
+  2. Hook 
     - 读取状态、更新状态、调用后端模块的 api 、操作 cesium
-  3. UI `eofControlPanel.jsx`
+    >`useEOF.js` 管理所有的控制参数和后端返回的 result 状态，处理 fetch 异步请求
+  3. UI 
     - 根据用户交互调用 Hook
-  4. Module `eofModule.jsx`
+    >`eofControlPanel.jsx` 负责表单的外观渲染；`eofResultPanel.jsx` 负责接收后端吐出来的 result 数据，并把它塞进 ECharts 渲染出来
+  4. Module 
     - 连接 UI 和 Hook
+    >`eofModule.jsx` 调用 useEOF() 拿到数据和方法，然后把它们分别分发给左侧面板和右侧大屏
 
->安装 eof 库 `pip install eofs`
 >安装 echarts `pnpm add echarts`
+
+>安装依赖 `npm install jszip file-saver`
 
 ##### 设计
 
@@ -220,10 +231,11 @@ export default function IsoSurfaceModule({hidden}) {
   - 选择 EOF 模式：横剖 or 纵剖
   - 选择位置：深度 or 经纬度
   - 选择时间跨度
+  - 选择展示前几个模态
 
-2. 结果可视化（仅可视化前三个mode）
-  - 空间模态有三个按钮，切换图
-  - 时间模态有三个按钮，对应隐藏曲线
+2. 结果可视化
+  - 空间模态多个按钮，切换图
+  - 时间模态多个按钮，对应隐藏曲线
 
 [测试脚本1](./test.py)
 
