@@ -10,7 +10,7 @@
 - Hypoxic_Boundary_Analysis
 
 1. 端口不一致, 建议统一启动端口为 5001, 跟 vite.config 中相配合
-2. 启动目录不一致, 建议统一为 `\DOVis` 目录下启动
+2. 启动目录不一致, 建议统一为 `\DOVis` 目录下启动 
 3. `Hypoxic_Boundary_Analysis` 分支对应功能还没有实现, 并且接口没有在 api 中注册, 而是直接在 main.py 直接声明, 汇总时确认一下是否还是打算直接声明
 
 > backend-eof 已经跟 3DIsosurface 做了集成, 那么建议是将另外两个分支的代码 merge 到 beckend-eof 的框架中 (实际存放还是你的 dev 分支)
@@ -22,4 +22,4 @@
 ### module work
 
 > 下周一之前, 实现完整的前端开发, 如有对 Cesium 的操作设计有问题可以让我来改
-> 请依照我的框架实现, 可以把我的模块文件和给出的config 作为上下文让 ai 辅助设计
+> 请依照我的框架实现, 可以把我的 README, 模块文件和给出的config 作为上下文让 ai 辅助设计
