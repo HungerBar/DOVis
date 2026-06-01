@@ -130,7 +130,7 @@ export default function IsoSurfaceModule({hidden}) {
 
 在设计 `\module` 的时候尽可能清晰的展示出哪个模块对应的是哪个渲染出来的组件
 
-### UI 设计
+### UI 设计...
 
 请你着重阅读 AppShell.jsx 中的三个模块:
 
