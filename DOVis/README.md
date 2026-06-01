@@ -209,10 +209,13 @@ export default function IsoSurfaceModule({hidden}) {
 
 - 基本架构
   1. State
-    - 当前系统的状态，全局 + EOF 局部
+    - 当前系统的状态，所有参数都是 EOF 局部、不影响其他模块
   2. Hook 
     - 读取状态、更新状态、调用后端模块的 api 、操作 cesium
-    >`useEOF.js` 管理所有的控制参数和后端返回的 result 状态，处理 fetch 异步请求
+    >`useEOF.js` 管理所有的控制参数和后端返回的 result 状态，处理 fetch 异步请求。
+  
+  2*. 还有一个 Hook 负责结果图表的生命周期和配置 `useEOFchart.js` 
+
   3. UI 
     - 根据用户交互调用 Hook
     >`eofControlPanel.jsx` 负责表单的外观渲染；`eofResultPanel.jsx` 负责接收后端吐出来的 result 数据，并把它塞进 ECharts 渲染出来
@@ -220,9 +223,14 @@ export default function IsoSurfaceModule({hidden}) {
     - 连接 UI 和 Hook
     >`eofModule.jsx` 调用 useEOF() 拿到数据和方法，然后把它们分别分发给左侧面板和右侧大屏
 
->安装 echarts `pnpm add echarts`
+  5. 其他业务
+    - `eofExport.js` 处理 EOF 结果，打包、压缩、导出 
+
+>引入 Plotly.js 进行可视化，资源放在 public 文件夹中，在 index.html 中引入
 
 >安装依赖 `npm install jszip file-saver`
+
+>增加 utils 文件夹，放前端工具函数的代码
 
 ##### 设计
 
@@ -234,9 +242,13 @@ export default function IsoSurfaceModule({hidden}) {
   - 选择展示前几个模态
 
 2. 结果可视化
-  - 空间模态多个按钮，切换图
-  - 时间模态多个按钮，对应隐藏曲线
+  - 多个按钮，切换 mode
 
 [测试脚本1](./test.py)
 
 [测试脚本2](./test_chart.py)
+
+3. 打包和导出数据
+  - 用户选择模块，导出当前 mode 的 EOF 结果，是一个 .zip 压缩包
+
+4. 关闭 EOF 面板后，保留用户操作参数，销毁 EOF 结果
