@@ -1,19 +1,18 @@
 from fastapi import FastAPI
-import os
+
+from api.routers.hypoxia import router as hypoxia_router
+
 app = FastAPI(
     title="DOVis API",
-    description="Dissolved Oxygen Visualization System",
-    version="0.1"
+    version="0.1.0"
 )
 
 app.include_router(
     hypoxia_router,
-    prefix="/hypoxia",
+    prefix="/api/hypoxia",
     tags=["Hypoxia"]
 )
 
 @app.get("/")
 def root():
-    return {
-        "message": "Backend Running"
-    }
+    return {"message": "DOVis Backend Running"}
