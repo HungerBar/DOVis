@@ -180,7 +180,7 @@ export default function IsoSurfaceModule({hidden}) {
     - 空间切片参数（深度 or 沿哪一经纬线）
     - 计算 mode 数量
 
-    >直接对参数范围和选择范围进行限制（目前是按照 do_predict.nc 写死的）。
+    >直接对参数范围和选择范围进行限制（**目前EOF前后端的相关参数全部是按照 do_predict.nc 写死的**）。
     >在原数据文件中将海洋深度划分为50层，因此深度参数也设计为50层，后端会映射到米。
 
     >有些参数和其他模块可能是共用的？
@@ -218,7 +218,7 @@ export default function IsoSurfaceModule({hidden}) {
 
   3. UI 
     - 根据用户交互调用 Hook
-    >`eofControlPanel.jsx` 负责表单的外观渲染；`eofResultPanel.jsx` 负责接收后端吐出来的 result 数据，并把它塞进 ECharts 渲染出来
+    >`eofControlPanel.jsx` 负责表单的外观渲染；`eofResultPanel.jsx` 负责接收后端吐出来的 result 数据，并把它渲染出来
   4. Module 
     - 连接 UI 和 Hook
     >`eofModule.jsx` 调用 useEOF() 拿到数据和方法，然后把它们分别分发给左侧面板和右侧大屏
