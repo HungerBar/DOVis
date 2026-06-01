@@ -10,7 +10,7 @@
 - Hypoxic_Boundary_Analysis
 
 1. 端口不一致, 建议统一启动端口为 5001, 跟 vite.config 中相配合
-2. 启动目录不一致, 建议统一为 `\DOVis` 目录下启动 
+2. 启动目录不一致, 建议统一为 `\DOVis` 目录下启动, 启动命令可以是 `uvicorn backend.main:app --port 5001 --reload`, 也可以在 `main.py` 中调整依赖 (import 语句) 支持 `python -m backend.main` 启动
 3. `Hypoxic_Boundary_Analysis` 分支对应功能还没有实现, 并且接口没有在 api 中注册, 而是直接在 main.py 直接声明, 汇总时确认一下是否还是打算直接声明
 
 > backend-eof 已经跟 3DIsosurface 做了集成, 那么建议是将另外两个分支的代码 merge 到 beckend-eof 的框架中 (实际存放还是你的 dev 分支)
