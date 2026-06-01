@@ -10,9 +10,6 @@ from backend.api.routers import (
 )
 from backend.core.clearTileCache import clear_tiles_cache
 
-# =========================================================
-# FIX 1: 绝对路径（避免 uvicorn cwd 不一致导致 tiles 找不到）
-# =========================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TILES_DIR = os.path.join(BASE_DIR, "..", "tiles")
 TILES_DIR = os.path.normpath(TILES_DIR)
