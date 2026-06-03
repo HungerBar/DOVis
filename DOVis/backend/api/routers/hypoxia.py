@@ -1,28 +1,31 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
+import traceback
 
-from services.volume_service import calculate_volume
 from services.boundary_service import calculate_boundary
 
 router = APIRouter()
 
-
-@router.get("/volume")
-def get_volume(time: str):
-
-    volume = calculate_volume(time)
-
-    return {
-        "time": time,
-        "volume_km3": volume
-    }
-
-
 @router.get("/boundary")
-def get_boundary(time: str):
+def get_boundary(time_index: str = Query(0, description="时间字符串，例如 '2024-01-01T00:00:00Z'"),
+                 threshold: float = Query(20.0, description="缺氧阈值，例如 20.0")
+):
+    
+    try:
+        boundary = calculate_boundary(time_index, threshold)
+        return {
+            "status": "success",
+            "tileset_url": boundary["tileset_url"],
+            "b3dm_url": boundary["b3dm_url"],
+            "cache_key": boundary["cache_key"],
+            "cached": boundary["cached"],
+            "volume_km3": boundary["volume"]
+        }
+    except Exception as e:
+        traceback.print_exc()  # 这会在终端输出完整的错误堆栈
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "detail": str(e)},  # 简短错误信息返回给前端
+        )
 
-    boundary = calculate_boundary(time)
-
-    return {
-        "time": time,
-        "boundary": boundary
-    }
