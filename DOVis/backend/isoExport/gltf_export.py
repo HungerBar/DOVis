@@ -1,6 +1,37 @@
 import os
+import struct
 import numpy as np
 import trimesh
+
+
+def _repair_glb_chunk_lengths(glb_bytes: bytes) -> bytes:
+    if len(glb_bytes) < 20:
+        raise ValueError('GLB bytes too short for header')
+
+    magic, version, glb_length = struct.unpack('<4sII', glb_bytes[:12])
+    if magic != b'glTF':
+        raise ValueError('Invalid GLB magic header')
+    if version != 2:
+        raise ValueError('Unsupported GLB version: %s' % version)
+    if glb_length != len(glb_bytes):
+        raise ValueError('GLB length mismatch: %s != %s' % (glb_length, len(glb_bytes)))
+
+    json_chunk_length = struct.unpack('<I', glb_bytes[12:16])[0]
+    actual_bin_length = len(glb_bytes) - 20 - json_chunk_length - 8
+
+    if actual_bin_length < 0:
+        raise ValueError('Invalid GLB binary length computed: %s' % actual_bin_length)
+
+    bin_length = struct.unpack('<I', glb_bytes[20 + json_chunk_length:24 + json_chunk_length])[0]
+    if bin_length != actual_bin_length:
+        repaired = bytearray(glb_bytes)
+        repaired[24 + json_chunk_length:28 + json_chunk_length] = struct.pack('<I', actual_bin_length)
+        print('====================================')
+        print('GLB repair: corrected BIN chunk length', bin_length, '->', actual_bin_length)
+        print('====================================')
+        return bytes(repaired)
+
+    return glb_bytes
 
 
 def export_glb(vertices, faces, path=None, origin=None):
@@ -69,6 +100,11 @@ def export_glb(vertices, faces, path=None, origin=None):
 
     if not isinstance(glb_bytes, (bytes, bytearray)):
         raise TypeError("GLB export did not return bytes.")
+
+    # =========================================================
+    # 6.1. repair chunk lengths if trimesh produced an invalid GLB header
+    # =========================================================
+    glb_bytes = _repair_glb_chunk_lengths(glb_bytes)
 
     # =========================================================
     # 7. save

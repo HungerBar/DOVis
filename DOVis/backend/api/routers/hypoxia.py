@@ -8,8 +8,9 @@ from services.boundary_service import calculate_boundary
 router = APIRouter()
 
 @router.get("/boundary")
-def get_boundary(time_index: str = Query(0, description="时间字符串，例如 '2024-01-01T00:00:00Z'"),
-                 threshold: float = Query(20.0, description="缺氧阈值，例如 20.0")
+def get_boundary(
+    time_index: int = Query(0, description="时间索引，例如 0"),
+    threshold: float = Query(20.0, description="缺氧阈值，例如 20.0")
 ):
     
     try:
