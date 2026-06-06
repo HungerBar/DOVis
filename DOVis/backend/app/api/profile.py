@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Query
-from app.schemas.profile import (
+from backend.app.schemas.profile import (
     HealthResponse,
     SectionRequest,
     SectionResponse,
     VerticalProfileResponse,
 )
-from app.services.profile_service import get_section_profile, get_vertical_profile
+from backend.app.services.profile_service import get_section_profile, get_vertical_profile
 
 router = APIRouter(prefix="/api")
 

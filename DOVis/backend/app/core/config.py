@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
-    CSV_DATA_PATH: str = "app/data/sample_do_profile.csv"
+    CSV_DATA_PATH: str = "backend/app/data/sample_do_profile.csv"
 
     model_config = {"env_prefix": "DOVIS_"}
 
