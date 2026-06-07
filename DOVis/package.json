@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "scripts": {
+    "backend": "uvicorn backend.main:app --port 5001 --reload",
+    "frontend": "npm --prefix frontend run dev",
+    "frontend:install": "npm --prefix frontend install"
+  }
+}
