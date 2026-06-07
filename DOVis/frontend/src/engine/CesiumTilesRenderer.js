@@ -84,18 +84,24 @@ export default class CesiumTilesRenderer {
 
     try {
       this.viewer?.camera?.cancelFlight?.();
-    } catch { }
+    } catch {
+      // Cesium can throw while a destroyed viewer is being torn down.
+    }
 
     try {
       this.viewer?.scene?.primitives?.remove?.(tileset);
-    } catch { }
+    } catch {
+      // Removing an already detached primitive is harmless.
+    }
 
     requestAnimationFrame(() => {
       try {
         if (!tileset.isDestroyed?.()) {
           tileset.destroy?.();
         }
-      } catch { }
+      } catch {
+        // Tileset destruction can race with Cesium's internal cleanup.
+      }
     });
   }
 
@@ -106,7 +112,9 @@ export default class CesiumTilesRenderer {
 
     try {
       this.viewer?.camera?.cancelFlight?.();
-    } catch { }
+    } catch {
+      // Viewer shutdown can invalidate the camera before cleanup finishes.
+    }
 
     if (this.tileset) {
       this.safeRemove(this.tileset);

@@ -3,7 +3,6 @@ import IsoSurfaceControlPanel from '../components/IsoSurfaceControlPanel';
 
 import useIsoSurface from '../hooks/useIsoSurface';
 import useCesiumTiles from '../hooks/useCesiumTiles';
-import { div } from 'three/src/nodes/math/OperatorNode.js';
 
 export default function IsoSurfaceModule({hidden}) {
   // =====================================
