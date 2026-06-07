@@ -179,46 +179,41 @@ export default function IsoSurfaceModule({hidden}) {
     - EOF 模式（水平 or 剖面）
     - 空间切片参数（深度 or 沿哪一经纬线）
     - 计算 mode 数量
-
-    >直接对参数范围和选择范围进行限制（**目前EOF前后端的相关参数全部是按照 do_predict.nc 写死的**）。
-    >在原数据文件中将海洋深度划分为50层，因此深度参数也设计为50层，后端会映射到米。
-
-    >有些参数和其他模块可能是共用的？
-    >暂定数据源。
   
   - 返回：
     - EOF 结果（矩阵）
-      - 这个数据比较大，考虑保存为文件再返回
+      - JSON 格式
 
 2. 数据
 
-  - 暂时从 [这个目录](/WebGIS/DOVis/data/) 读取
-  - 增加了 `get_ds_by_id()` 读入方式，这个支持数据选择
+  - 在 [原来读取数据的文档](WebGIS\DOVis\backend\core\dataset.py) 增加 `get_ds_by_id()` 读入方式，和原先读取数据函数形式完全一样，但是支持多源数据选择
 
-3. 前端结果展示
-  
-  - 二维图表
-  
-4. 其他
 
-  - ？接入一个 LLM 分析结果
+3. 环境
 
->安装 eof 库 `pip install eofs`
+  - 安装 eof 库 `pip install eofs`
 
 #### 前端细节
 
 - 基本架构
+
   1. State
     - 当前系统的状态，所有参数都是 EOF 局部、不影响其他模块
+
   2. Hook 
     - 读取状态、更新状态、调用后端模块的 api 、操作 cesium
-    >`useEOF.js` 管理所有的控制参数和后端返回的 result 状态，处理 fetch 异步请求。
+
+    - `useEOF.js` 管理所有的控制参数和后端返回的 result 状态，处理 fetch 异步请求。
   
-  2*. 还有一个 Hook 负责结果图表的生命周期和配置 `useEOFchart.js` 
+    - 还有一个 Hook 负责结果图表的生命周期和配置 `useEOFchart.js` 
+
+      >引入 Plotly.js 进行可视化，资源放在 public 文件夹中（放本地减少网络影响），在 index.html 中引入
 
   3. UI 
     - 根据用户交互调用 Hook
-    >`eofControlPanel.jsx` 负责表单的外观渲染；`eofResultPanel.jsx` 负责接收后端吐出来的 result 数据，并把它渲染出来
+
+    >`eofControlPanel.jsx` 负责表单的外观渲染；`eofResultPanel.jsx` 负责接收后端返回的 result 数据，并把它渲染出来
+  
   4. Module 
     - 连接 UI 和 Hook
     >`eofModule.jsx` 调用 useEOF() 拿到数据和方法，然后把它们分别分发给左侧面板和右侧大屏
@@ -226,13 +221,13 @@ export default function IsoSurfaceModule({hidden}) {
   5. 其他业务
     - `eofExport.js` 处理 EOF 结果，打包、压缩、导出 
 
->引入 Plotly.js 进行可视化，资源放在 public 文件夹中，在 index.html 中引入
+- 环境与结构
+  
+  - 安装依赖 `npm install jszip file-saver`
 
->安装依赖 `npm install jszip file-saver`
+  - 增加 utils 文件夹，放前端工具函数的代码
 
->增加 utils 文件夹，放前端工具函数的代码
-
-##### 设计
+#### EOF 流程
 
 1. 用户操作
   - 选择数据源（全局）
@@ -244,11 +239,17 @@ export default function IsoSurfaceModule({hidden}) {
 2. 结果可视化
   - 多个按钮，切换 mode
 
-[测试脚本1](./test.py)
-
-[测试脚本2](./test_chart.py)
-
 3. 打包和导出数据
   - 用户选择模块，导出当前 mode 的 EOF 结果，是一个 .zip 压缩包
 
 4. 关闭 EOF 面板后，保留用户操作参数，销毁 EOF 结果
+
+#### 其他说明
+
+- **目前EOF前后端的相关参数全部是按照 do_predict.nc 写死的**，如果之后改成多源数据，考虑在后端增加一个接口，接收数据并返回它的信息
+
+  - 相关参数应该包括 api中数据格式与边界检查；eof总控面板中，用户输入参数范围与 ui 显示；结果图渲染hook中，原始数据时间转实际时间时基准年份。
+
+- 设计 ui ，整个面板样式修改 [`eofControlPanel.jsx`](WebGIS\DOVis\frontend\src\components\eofControlPanel.jsx) ；可视化样式修改 [`eofResultPanel.jsx`](WebGIS\DOVis\frontend\src\components\eofResultPanel.jsx)
+
+  - 可视化样式修改的时候务必小心，有些必须的结构不要动！

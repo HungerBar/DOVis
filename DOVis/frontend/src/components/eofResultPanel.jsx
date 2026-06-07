@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useEOFCharts } from "../hooks/useEOFchart";
 import { handleExportCurrentMode } from "../utils/eofExport";
 
+// ============== 结果区 ui =============
 const styles = {
   panel: { width: "600px", padding: "16px", background: "#0b1220", color: "#fff", height: "100%", overflow: "auto" },
   title: { fontSize: "16px", fontWeight: "bold", marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" },
@@ -12,6 +13,7 @@ const styles = {
   chartBox: { width: "100%", height: "320px", marginBottom: "24px" },
   exportBtn: { padding: "6px 14px", background: "#10b981", color: "#fff", border: "none", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }
 };
+// ===============================
 
 export default function EOFResultPanel({ result, loading }) {
   const [activeModeIdx, setActiveModeIdx] = useState(0);
@@ -35,6 +37,7 @@ export default function EOFResultPanel({ result, loading }) {
     });
   };
 
+  // ========== 计算中状态 ui =============
   if (loading) {
     return (
       <div style={styles.panel}>
@@ -45,6 +48,7 @@ export default function EOFResultPanel({ result, loading }) {
     );
   }
 
+  // ========== 未运行状态 ui  =============
   if (!result || !result.modes) {
     return (
       <div style={styles.panel}>
@@ -54,12 +58,13 @@ export default function EOFResultPanel({ result, loading }) {
     );
   }
 
+  // ======= 结果渲染 ui ==========
   return (
     <div style={styles.panel}>
       <div style={styles.title}>
         <span>EOF Analysis Result</span>
         <button style={styles.exportBtn} onClick={onExportClick}>
-          📦 导出当前 Mode {activeModeIdx + 1} 数据
+          📦 导出 Mode {activeModeIdx + 1} 数据
         </button>
       </div>
 
@@ -77,7 +82,6 @@ export default function EOFResultPanel({ result, loading }) {
 
       {/* 仅仅通过 ref 绑定 DOM，不再包含任何绘图副作用 */}
       <div ref={spatialRef} style={styles.chartBox} />
-      <div ref={varianceRef} style={{ ...styles.chartBox, height: "160px" }} />
       <div ref={pcsRef} style={styles.chartBox} />
     </div>
   );

@@ -239,11 +239,11 @@ export default function EOFControlPanel({
           value={modeNum} 
           onChange={(e)=>setModeNum(Number(e.target.value))}
         >
-          <option value={1}>1 个主要模态 (仅看最大特征值)</option>
+          <option value={1}>1 个主要模态</option>
           <option value={2}>2 个主要模态</option>
-          <option value={3}>3 个主要模态 (推荐配置)</option>
+          <option value={3}>3 个主要模态</option>
           <option value={4}>4 个主要模态</option>
-          <option value={5}>5 个主要模态 (高精度)</option>
+          <option value={5}>5 个主要模态</option>
         </select>
       </div>
 
