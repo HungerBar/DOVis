@@ -1,15 +1,25 @@
 const styles = {
   panel: {
-    width: '320px',
-    height: '100vh',
+    width: '100%',
+    height: '100%',
+    minHeight: 0,
+
     padding: '24px 20px',
     background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)',
     color: '#f8fafc',
+
     display: 'flex',
     flexDirection: 'column',
     gap: '24px',
     boxSizing: 'border-box',
+
     overflowY: 'auto',
+    overflowX: 'hidden',
+
+    scrollbarGutter: 'stable',
+    scrollbarWidth: 'thin',
+    scrollbarColor: '#38bdf8 rgba(15,23,42,0.7)',
+
     flexShrink: 0,
     borderRight: '1px solid rgba(148,163,184,0.15)',
     boxShadow: '4px 0 20px rgba(0,0,0,0.25)',
@@ -126,7 +136,7 @@ const IsoSurfaceControlPanel = ({
   onTogglePreview,
 }) => {
   return (
-    <div style={styles.panel}>
+    <div className="iso-control-panel" style={styles.panel}>
       <h2 style={styles.title}>
         Indian Ocean Oxygen
       </h2>

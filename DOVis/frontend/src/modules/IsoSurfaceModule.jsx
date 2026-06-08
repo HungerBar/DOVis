@@ -42,7 +42,7 @@ export default function IsoSurfaceModule({ hidden }) {
     await load();
 
     // 渲染到 Cesium 后自动隐藏右侧预览
-    setPreviewVisible(false);
+    // setPreviewVisible(false);
   };
 
   const handleEndRenderCesium = () => {
