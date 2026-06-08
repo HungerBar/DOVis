@@ -1,90 +1,96 @@
+import json
 import struct
 
 
-def pad8(data: bytes) -> bytes:
+def _pad_bytes(
+    data: bytes,
+    target_multiple: int = 8,
+    pad_byte: bytes = b" ",
+    current_offset: int = 0,
+) -> bytes:
     """
-    8-byte alignment padding
+    Pad bytes so that current_offset + len(data) is aligned to target_multiple.
     """
-    padding = (8 - (len(data) % 8)) % 8
-    return data + b"\x00" * padding
+
+    remainder = (current_offset + len(data)) % target_multiple
+
+    if remainder == 0:
+        return data
+
+    padding = target_multiple - remainder
+
+    return data + pad_byte * padding
 
 
-def pad_json(data: bytes) -> bytes:
+def glb_to_b3dm(glb_bytes: bytes) -> bytes:
     """
-    JSON padding must use spaces (0x20)
-    """
-    padding = (8 - (len(data) % 8)) % 8
-    return data + b"\x20" * padding
+    Wrap GLB bytes into a minimal B3DM tile.
 
+    B3DM header layout:
+        magic                       4 bytes
+        version                     uint32
+        byteLength                  uint32
+        featureTableJSONByteLength  uint32
+        featureTableBinaryByteLength uint32
+        batchTableJSONByteLength    uint32
+        batchTableBinaryByteLength  uint32
+    """
 
-def glb_to_b3dm(glb_bytes: bytes, batch_length: int = 1) -> bytes:
-    """
-    Cesium-compatible b3dm exporter
-    """
-    if isinstance(glb_bytes, memoryview):
-        glb_bytes = glb_bytes.tobytes()
     if not isinstance(glb_bytes, (bytes, bytearray)):
         raise TypeError("glb_bytes must be bytes")
 
-    # =====================================================
-    # b3dm header
-    # =====================================================
-    magic = b"b3dm"
-    version = 1
+    if len(glb_bytes) == 0:
+        raise ValueError("Empty GLB bytes")
 
-    # =====================================================
-    # feature table - ✅ 必须包含 BATCH_LENGTH
-    # =====================================================
-    ft_json = pad_json(f'{{"BATCH_LENGTH":{batch_length}}}'.encode("utf-8"))
-    ft_bin = b""
+    if glb_bytes[:4] != b"glTF":
+        raise ValueError("Input is not a valid binary GLB")
 
-    # =====================================================
-    # batch table - 可以为空，但结构要正确
-    # =====================================================
-    # 如果没有批处理数据，也要保证格式正确
-    bt_json = pad_json(b"{}")
-    bt_bin = b""
+    header_length = 28
 
-    # =====================================================
-    # glb alignment
-    # =====================================================
-    glb_bytes = pad8(glb_bytes)
+    feature_table_json = json.dumps(
+        {
+            "BATCH_LENGTH": 0,
+        },
+        separators=(",", ":"),
+    ).encode("utf-8")
 
-    # =====================================================
-    # body
-    # =====================================================
-    body = ft_json + ft_bin + bt_json + bt_bin + glb_bytes
-    byte_length = 28 + len(body)
-
-    # =====================================================
-    # header
-    # =====================================================
-    header = struct.pack(
-        "<4sIIIIII",
-        magic,
-        version,
-        byte_length,
-        len(ft_json),
-        len(ft_bin),
-        len(bt_json),
-        len(bt_bin),
+    # Make the GLB payload start at an 8-byte-aligned offset.
+    feature_table_json = _pad_bytes(
+        feature_table_json,
+        target_multiple=8,
+        pad_byte=b" ",
+        current_offset=header_length,
     )
 
-    result = header + body
+    feature_table_binary = b""
+    batch_table_json = b""
+    batch_table_binary = b""
 
-    # =====================================================
-    # validation
-    # =====================================================
-    if len(result) != byte_length:
-        raise RuntimeError(f"Invalid b3dm byte length: {len(result)} != {byte_length}")
+    byte_length = (
+        header_length
+        + len(feature_table_json)
+        + len(feature_table_binary)
+        + len(batch_table_json)
+        + len(batch_table_binary)
+        + len(glb_bytes)
+    )
 
-    print("====================================")
-    print("B3DM export success")
-    print("byteLength:", byte_length)
-    print("actual:", len(result))
-    print("ft_json:", len(ft_json), "->", ft_json[:50])  
-    print("bt_json:", len(bt_json))
-    print("glb:", len(glb_bytes))
-    print("batch_length:", batch_length)
-    print("====================================")
-    return result
+    header = struct.pack(
+        "<4sIIIIII",
+        b"b3dm",
+        1,
+        byte_length,
+        len(feature_table_json),
+        len(feature_table_binary),
+        len(batch_table_json),
+        len(batch_table_binary),
+    )
+
+    return (
+        header
+        + feature_table_json
+        + feature_table_binary
+        + batch_table_json
+        + batch_table_binary
+        + glb_bytes
+    )

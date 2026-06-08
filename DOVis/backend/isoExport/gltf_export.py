@@ -1,102 +1,117 @@
-import os
 import numpy as np
 import trimesh
 
 
-def export_glb(vertices, faces, path=None, origin=None):
+def z_up_to_gltf_y_up(vertices):
     """
-    Export Cesium-compatible GLB (ECEF coordinates)
+    Convert desired 3D Tiles local z-up coordinates to glTF y-up coordinates.
 
-    IMPORTANT:
-    - vertices MUST already be in ECEF (meters)
-    - NO ENU, NO local transform
-    - NO coordinate conversion
+    Desired local coordinate:
+        p = (x, y, z)
+
+    Stored glTF coordinate:
+        q = (x, z, -y)
+
+    Cesium loads glTF as y-up, then converts it into its runtime z-up space.
+    After that conversion, q maps back to p.
     """
 
-    # =========================================================
-    # 1. input check
-    # =========================================================
+    vertices = np.asarray(vertices, dtype=np.float64)
+
+    return np.column_stack(
+        [
+            vertices[:, 0],
+            vertices[:, 2],
+            -vertices[:, 1],
+        ]
+    )
+
+
+def duplicate_faces_for_double_sided(faces):
+    """
+    Make mesh visible from both sides.
+
+    This avoids relying on glTF material doubleSided support.
+    """
+
+    faces = np.asarray(faces, dtype=np.uint32)
+
+    reversed_faces = faces[:, [0, 2, 1]]
+
+    return np.vstack(
+        [
+            faces,
+            reversed_faces,
+        ]
+    ).astype(np.uint32)
+
+
+def export_glb(
+    vertices,
+    faces,
+    path,
+    origin=None,
+    double_sided=True,
+):
+    """
+    Export mesh to GLB.
+
+    Parameters
+    ----------
+    vertices : np.ndarray
+        Local z-up vertices, shape (N, 3).
+        These should NOT be absolute ECEF vertices.
+    faces : np.ndarray
+        Triangle indices, shape (M, 3).
+    path : str
+        Output .glb path.
+    origin : None
+        Kept for compatibility with older calls.
+        Do not use origin here; localization is handled in tileset_service.py.
+    double_sided : bool
+        Whether to duplicate reversed faces.
+    """
+
     vertices = np.asarray(vertices, dtype=np.float64)
     faces = np.asarray(faces, dtype=np.uint32)
 
-    if len(vertices) == 0 or len(faces) == 0:
-        raise ValueError("Empty mesh input")
+    if vertices.ndim != 2 or vertices.shape[1] != 3:
+        raise ValueError(f"Invalid vertices shape: {vertices.shape}")
 
-    # =========================================================
-    # 2. vertex colors (debug only)
-    # =========================================================
-    YELLOW = np.array([255, 255, 0, 255], dtype=np.uint8)
-    colors = np.tile(YELLOW, (len(vertices), 1))
+    if faces.ndim != 2 or faces.shape[1] != 3:
+        raise ValueError(f"Invalid faces shape: {faces.shape}")
 
-    # =========================================================
-    # 3. build mesh (NO processing)
-    # =========================================================
-    mesh = trimesh.Trimesh(
-        vertices=vertices,
-        faces=faces,
-        vertex_colors=colors,
-        process=False,
-        validate=False,
-    )
+    if len(vertices) == 0:
+        raise ValueError("Empty vertices")
 
-    # =========================================================
-    # 4. normals (safe, no geometry modification)
-    # =========================================================
-    _ = mesh.vertex_normals
+    if len(faces) == 0:
+        raise ValueError("Empty faces")
 
-    # =========================================================
-    # 5. minimal cleanup ONLY (ECEF-safe)
-    # =========================================================
-    mesh.remove_degenerate_faces()
+    if not np.all(np.isfinite(vertices)):
+        raise ValueError("Vertices contain NaN or Inf")
 
-    # ⚠️ IMPORTANT:
-    # do NOT remove_unreferenced_vertices in scientific meshes blindly
-    # it may break topology consistency after MC
-    # mesh.remove_unreferenced_vertices()
+    if not np.all(np.isfinite(faces)):
+        raise ValueError("Faces contain NaN or Inf")
 
-    if len(mesh.vertices) == 0:
-        raise ValueError("Mesh has no valid vertices after cleanup.")
-    if len(mesh.faces) == 0:
-        raise ValueError("Mesh has no valid faces after cleanup.")
-
-    # =========================================================
-    # 6. export GLB
-    # =========================================================
-    glb_bytes = mesh.export(file_type="glb")
-
-    if isinstance(glb_bytes, memoryview):
-        glb_bytes = glb_bytes.tobytes()
-
-    if not isinstance(glb_bytes, (bytes, bytearray)):
-        raise TypeError("GLB export did not return bytes.")
-
-    # =========================================================
-    # 7. save
-    # =========================================================
-    if path is not None:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "wb") as f:
-            f.write(glb_bytes)
-
-    # =========================================================
-    # 8. debug info (ECEF SPACE)
-    # =========================================================
-    print("====================================")
-    print("GLB export success (ECEF MODE)")
-    print("vertices:", len(mesh.vertices))
-    print("faces:", len(mesh.faces))
-
-    vmin = mesh.vertices.min(axis=0)
-    vmax = mesh.vertices.max(axis=0)
-
-    print("ECEF X range:", vmin[0], "~", vmax[0])
-    print("ECEF Y range:", vmin[1], "~", vmax[1])
-    print("ECEF Z range:", vmin[2], "~", vmax[2])
-
+    # Keep old interface compatibility.
+    # In the new pipeline, origin should normally be None.
     if origin is not None:
-        print("origin (debug only):", origin)
+        origin = np.asarray(origin, dtype=np.float64)
+        vertices = vertices - origin
 
-    print("glb size:", len(glb_bytes))
-    print("====================================")
+    # Convert local z-up to glTF y-up.
+    gltf_vertices = z_up_to_gltf_y_up(vertices).astype(np.float32)
 
-    return glb_bytes
+    if double_sided:
+        export_faces = duplicate_faces_for_double_sided(faces)
+    else:
+        export_faces = faces
+
+    mesh = trimesh.Trimesh(
+        vertices=gltf_vertices,
+        faces=export_faces,
+        process=False,
+    )
+    mesh.visual.face_colors = [0, 180, 255, 180]
+
+    mesh.export(path)

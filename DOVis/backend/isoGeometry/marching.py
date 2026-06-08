@@ -1,7 +1,8 @@
 import numpy as np
-from pyproj import Transformer
-from backend.core.dataset import get_ds
 import pyvista as pv
+from pyproj import Transformer
+
+from backend.core.dataset import get_ds
 
 # =========================================================
 # CRS transforms
@@ -26,31 +27,17 @@ to_geo = Transformer.from_crs(
 
 
 def triangle_area(a, b, c):
-
-    return (
-        np.linalg.norm(
-            np.cross(
-                b - a,
-                c - a,
-            )
-        )
-        * 0.5
-    )
+    return 0.5 * np.linalg.norm(np.cross(b - a, c - a))
 
 
 def find_non_collinear_points(
     verts_ecef,
     min_area=1e3,
 ):
-
     n = len(verts_ecef)
 
     if n < 3:
         raise ValueError("Not enough vertices")
-
-    # -----------------------------------------------------
-    # initial guess
-    # -----------------------------------------------------
 
     idx0 = 0
     idx1 = n // 3
@@ -60,49 +47,60 @@ def find_non_collinear_points(
     p1 = verts_ecef[idx1]
     p2 = verts_ecef[idx2]
 
-    area = triangle_area(
-        p0,
-        p1,
-        p2,
-    )
+    area = triangle_area(p0, p1, p2)
 
     if area > min_area:
-
         return (
             np.array([p0, p1, p2]),
             [idx0, idx1, idx2],
         )
 
-    # -----------------------------------------------------
-    # brute-force sparse search
-    # -----------------------------------------------------
-
     step = max(1, n // 50)
 
     for i in range(0, n, step):
-
         for j in range(i + 1, n, step):
-
             for k in range(j + 1, n, step):
-
                 a = verts_ecef[i]
                 b = verts_ecef[j]
                 c = verts_ecef[k]
 
-                area = triangle_area(
-                    a,
-                    b,
-                    c,
-                )
+                area = triangle_area(a, b, c)
 
                 if area > min_area:
-
                     return (
                         np.array([a, b, c]),
                         [i, j, k],
                     )
 
     raise ValueError("Could not find non-collinear points")
+
+
+def build_valid_cell_mask(valid_xyz):
+    """
+    Build valid-cell mask for a StructuredGrid.
+
+    Parameters
+    ----------
+    valid_xyz : np.ndarray
+        Boolean array with shape (nx, ny, nz).
+
+    Returns
+    -------
+    np.ndarray
+        Boolean array with shape (nx - 1, ny - 1, nz - 1).
+        True means all 8 corner points of the cell are valid.
+    """
+
+    return (
+        valid_xyz[:-1, :-1, :-1]
+        & valid_xyz[1:, :-1, :-1]
+        & valid_xyz[:-1, 1:, :-1]
+        & valid_xyz[1:, 1:, :-1]
+        & valid_xyz[:-1, :-1, 1:]
+        & valid_xyz[1:, :-1, 1:]
+        & valid_xyz[:-1, 1:, 1:]
+        & valid_xyz[1:, 1:, 1:]
+    )
 
 
 # =========================================================
@@ -115,6 +113,26 @@ def run_marching_cubes_ecef(
     iso_value: float,
     verbose=True,
 ):
+    """
+    Extract iso-surface directly on an ECEF StructuredGrid.
+
+    Interface is unchanged:
+
+        verts_ecef, faces, meta = run_marching_cubes_ecef(
+            time_idx,
+            iso_value,
+            verbose=True,
+        )
+
+    Returns
+    -------
+    verts_ecef : np.ndarray
+        Shape (N, 3), absolute ECEF coordinates.
+    faces : np.ndarray
+        Shape (M, 3), triangle indices.
+    meta : dict
+        Metadata for tileset export.
+    """
 
     ds = get_ds()
 
@@ -122,171 +140,122 @@ def run_marching_cubes_ecef(
     # 1. load volume
     # =====================================================
 
-    vol = ds["o2_pred"].isel(time=time_idx).values
+    raw_vol = ds["o2_pred"].isel(time=time_idx).values.astype(np.float32)
 
-    depth = ds.depth.values
-    lat = ds.lat.values
-    lon = ds.lon.values
+    depth = ds.depth.values.astype(np.float64)
+    lat = ds.lat.values.astype(np.float64)
+    lon = ds.lon.values.astype(np.float64)
 
-    vol = np.nan_to_num(
-        vol,
-        nan=np.nanmin(vol) - 1.0,
+    # raw_vol: (depth, lat, lon) = (nz, ny, nx)
+    nz, ny, nx = raw_vol.shape
+
+    # =====================================================
+    # 2. convert scalar field to VTK order
+    # =====================================================
+    #
+    # Source:
+    #   raw_vol[k, j, i] -> (depth, lat, lon)
+    #
+    # StructuredGrid:
+    #   field_xyz[i, j, k] -> (lon, lat, depth)
+    #
+    # VTK expects x-fastest ordering, so we use ravel(order="F").
+    # =====================================================
+
+    field_xyz = raw_vol.transpose(2, 1, 0)  # (nx, ny, nz)
+    valid_xyz = np.isfinite(field_xyz)
+
+    field_xyz_filled = np.where(
+        valid_xyz,
+        field_xyz,
+        iso_value,
+    ).astype(np.float32)
+
+    # =====================================================
+    # 3. build ECEF StructuredGrid
+    # =====================================================
+
+    lon3, lat3, depth3 = np.meshgrid(
+        lon,
+        lat,
+        depth,
+        indexing="ij",
     )
 
-    nz, ny, nx = vol.shape
+    height3 = -depth3
 
-    # =====================================================
-    # 2. build structured grid
-    # =====================================================
+    x, y, z = to_ecef.transform(
+        lon3.ravel(order="F"),
+        lat3.ravel(order="F"),
+        height3.ravel(order="F"),
+    )
 
-    grid = pv.ImageData()
+    points = np.column_stack([x, y, z]).astype(np.float64)
 
+    grid = pv.StructuredGrid()
     grid.dimensions = (
         nx,
         ny,
         nz,
     )
+    grid.points = points
 
-    grid.spacing = (
-        1.0,
-        1.0,
-        1.0,
+    grid.point_data["field"] = field_xyz_filled.ravel(order="F")
+
+    # =====================================================
+    # 4. hide invalid cells
+    # =====================================================
+
+    valid_cell = build_valid_cell_mask(valid_xyz)
+    invalid_cell_ids = np.flatnonzero((~valid_cell).ravel(order="F"))
+
+    if len(invalid_cell_ids) > 0:
+        grid = grid.hide_cells(invalid_cell_ids)
+
+    # =====================================================
+    # 5. contour / marching cubes
+    # =====================================================
+
+    mesh = grid.contour(
+        isosurfaces=[float(iso_value)],
+        scalars="field",
     )
 
-    # IMPORTANT:
-    # PyVista/VTK internally uses Fortran order
-
-    grid.point_data["field"] = vol.transpose(2, 1, 0).ravel(order="F")
-
-    # =====================================================
-    # 3. marching cubes
-    # =====================================================
-
-    mesh = grid.contour(isosurfaces=[iso_value])
-
-    verts = np.asarray(mesh.points)
-
-    faces = mesh.faces.reshape(-1, 4)[:, 1:4]
-
-    if len(verts) == 0:
-        raise ValueError("Empty contour mesh")
-
-    # =====================================================
-    # 4. index space -> geographic coords
-    # =====================================================
-
-    ix = verts[:, 0]
-    iy = verts[:, 1]
-    iz = verts[:, 2]
-
-    # -----------------------------------------------------
-    # NOTE:
-    # Depending on VTK axis conventions,
-    # you may need:
-    #
-    # lat <- iz
-    # h   <- iy
-    #
-    # if orientation looks wrong
-    # -----------------------------------------------------
-
-    lon_v = np.interp(
-        ix,
-        np.arange(nx),
-        lon,
-    )
-
-    lat_v = np.interp(
-        iy,
-        np.arange(ny),
-        lat,
-    )
-
-    # ocean depth -> ellipsoidal height
-
-    h_v = -np.interp(
-        iz,
-        np.arange(nz),
-        depth,
-    )
-
-    # =====================================================
-    # 5. geographic -> ECEF
-    # =====================================================
-
-    x, y, z = to_ecef.transform(
-        lon_v,
-        lat_v,
-        h_v,
-    )
-
-    verts_ecef = np.vstack(
-        [
-            x,
-            y,
-            z,
-        ]
-    ).T
-
-    # =====================================================
-    # OPTIONAL:
-    # handedness / axis debugging
-    # =====================================================
-
-    DEBUG_TRANSFORM = None
-
-    if DEBUG_TRANSFORM == "swap_yz":
-
-        verts_ecef = verts_ecef[:, [0, 2, 1]]
-
-    elif DEBUG_TRANSFORM == "swap_xyz":
-
-        verts_ecef = verts_ecef[:, [1, 2, 0]]
-
-    elif DEBUG_TRANSFORM == "flip_x":
-
-        verts_ecef[:, 0] *= -1
-
-    elif DEBUG_TRANSFORM == "flip_y":
-
-        verts_ecef[:, 1] *= -1
-
-    elif DEBUG_TRANSFORM == "flip_z":
-
-        verts_ecef[:, 2] *= -1
-
-    elif DEBUG_TRANSFORM == "left_to_right":
-
-        verts_ecef = np.column_stack(
-            [
-                verts_ecef[:, 0],
-                verts_ecef[:, 2],
-                -verts_ecef[:, 1],
-            ]
+    if mesh.n_points == 0 or mesh.n_cells == 0:
+        raise ValueError(
+            f"Empty contour mesh for iso_value={iso_value}, time_idx={time_idx}"
         )
+
+    mesh = mesh.triangulate()
+    mesh = mesh.clean(tolerance=0.0)
+
+    verts_ecef = np.asarray(mesh.points, dtype=np.float64)
+
+    faces_raw = mesh.faces.reshape(-1, 4)
+
+    if not np.all(faces_raw[:, 0] == 3):
+        raise ValueError("Contour mesh contains non-triangle faces.")
+
+    faces = faces_raw[:, 1:4].astype(np.uint32)
 
     # =====================================================
     # 6. bounding sphere
     # =====================================================
 
-    center = np.array(
-        [0.0, 0.0, 0.0],
-        dtype=np.float64,
-    )
+    center = verts_ecef.mean(axis=0).astype(np.float64)
 
     radius = float(
         np.linalg.norm(
-            verts_ecef,
+            verts_ecef - center,
             axis=1,
         ).max()
     )
 
     # =====================================================
-    # 7. choose 3 non-collinear control points
+    # 7. control points
     # =====================================================
 
     control_src, control_indices = find_non_collinear_points(verts_ecef)
-
     control_dst = control_src.copy()
 
     # =====================================================
@@ -294,64 +263,53 @@ def run_marching_cubes_ecef(
     # =====================================================
 
     if verbose:
-
-        centroid = np.mean(
-            verts_ecef,
-            axis=0,
+        lon_v, lat_v, h_v = to_geo.transform(
+            verts_ecef[:, 0],
+            verts_ecef[:, 1],
+            verts_ecef[:, 2],
         )
 
         lon_c, lat_c, h_c = to_geo.transform(
-            centroid[0],
-            centroid[1],
-            centroid[2],
+            center[0],
+            center[1],
+            center[2],
         )
 
         print("\n====================================")
-
-        print("PYVISTA MC RESULT")
-
+        print("PYVISTA ECEF STRUCTUREDGRID RESULT")
         print("====================================")
 
         print("vertices:", len(verts_ecef))
-
         print("faces:", len(faces))
 
-        # -------------------------------------------------
-        # bounding sphere
-        # -------------------------------------------------
+        print("\nSOURCE DATA")
+        print("volume shape:", raw_vol.shape)
+        print("lon range:", float(lon.min()), float(lon.max()))
+        print("lat range:", float(lat.min()), float(lat.max()))
+        print("depth range:", float(depth.min()), float(depth.max()))
+
+        print("\nMESH GEO RANGE")
+        print("lon range:", float(np.nanmin(lon_v)), float(np.nanmax(lon_v)))
+        print("lat range:", float(np.nanmin(lat_v)), float(np.nanmax(lat_v)))
+        print("height range:", float(np.nanmin(h_v)), float(np.nanmax(h_v)))
+        print("depth range:", float(np.nanmin(-h_v)), float(np.nanmax(-h_v)))
 
         print("\nBOUNDING SPHERE")
-
         print("center:", center)
-
         print("radius:", radius)
+        print("center lon:", lon_c)
+        print("center lat:", lat_c)
+        print("center height:", h_c)
 
-        # -------------------------------------------------
-        # centroid
-        # -------------------------------------------------
-
-        print("\nMESH CENTROID")
-
-        print("ECEF:", centroid)
-
-        print("lon:", lon_c)
-
-        print("lat:", lat_c)
-
-        print("height:", h_c)
-
-        # -------------------------------------------------
-        # control points
-        # -------------------------------------------------
+        print("\nVALIDITY")
+        print("invalid points:", int(np.size(valid_xyz) - np.count_nonzero(valid_xyz)))
+        print("invalid cells:", int(len(invalid_cell_ids)))
 
         print("\n====================================")
-
         print("CONTROL POINTS")
-
         print("====================================")
 
         for i in range(3):
-
             src = control_src[i]
 
             lon_p, lat_p, h_p = to_geo.transform(
@@ -361,18 +319,15 @@ def run_marching_cubes_ecef(
             )
 
             print(f"\nP{i}")
-
-            print(f"VERTEX INDEX : " f"{control_indices[i]}")
-
+            print(f"VERTEX INDEX : {control_indices[i]}")
             print("ECEF : " f"X={src[0]:.6f}, " f"Y={src[1]:.6f}, " f"Z={src[2]:.6f}")
-
             print(
-                "GEO  : " f"lon={lon_p:.6f}, " f"lat={lat_p:.6f}, " f"height={h_p:.3f}"
+                "GEO  : "
+                f"lon={lon_p:.6f}, "
+                f"lat={lat_p:.6f}, "
+                f"height={h_p:.3f}, "
+                f"depth={-h_p:.3f}"
             )
-
-        # -------------------------------------------------
-        # triangle area
-        # -------------------------------------------------
 
         area = triangle_area(
             control_src[0],
@@ -381,7 +336,6 @@ def run_marching_cubes_ecef(
         )
 
         print("\nTRIANGLE AREA")
-
         print(f"{area:.6f} m²")
 
     # =====================================================
@@ -394,18 +348,18 @@ def run_marching_cubes_ecef(
             "center": center.tolist(),
             "radius": radius,
         },
-        "vertices": len(verts_ecef),
-        "faces": len(faces),
+        "vertices": int(len(verts_ecef)),
+        "faces": int(len(faces)),
         "control_points": [
             {
-                "id": i,
+                "id": int(i),
                 "vertex_index": int(control_indices[i]),
                 "source_ecef": control_src[i].tolist(),
                 "target_ecef": control_dst[i].tolist(),
             }
             for i in range(3)
         ],
-        "note": "ECEF mesh with non-collinear control points",
+        "note": "ECEF StructuredGrid contour with invalid cells hidden",
     }
 
     return (
