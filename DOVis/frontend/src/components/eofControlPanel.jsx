@@ -1,6 +1,6 @@
 const styles = {
   panel: {
-    width: '320px',
+    width: '100%',
     height: '100%',
     padding: '24px 20px',
     background: '#111827',

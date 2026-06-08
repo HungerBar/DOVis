@@ -5,12 +5,12 @@ import { handleExportCurrentMode } from "../utils/eofExport";
 
 // ============== 结果区 ui =============
 const styles = {
-  panel: { width: "600px", padding: "16px", background: "#0b1220", color: "#fff", height: "100%", overflow: "auto" },
+  panel: { width: "100%", padding: "16px", background: "#0b1220", color: "#fff", height: "100%", overflow: "auto" },
   title: { fontSize: "16px", fontWeight: "bold", marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" },
   tabBox: { display: "flex", gap: "8px", marginBottom: "16px", borderBottom: "1px solid #1e293b", paddingBottom: "8px" },
   btn: { padding: "6px 12px", cursor: "pointer", background: "#1e293b", border: "none", color: "#ccc", borderRadius: "4px" },
   btnActive: { padding: "6px 12px", cursor: "pointer", background: "#38bdf8", border: "none", color: "#000", fontWeight: "bold", borderRadius: "4px" },
-  chartBox: { width: "100%", height: "320px", marginBottom: "24px" },
+  chartBox: { width: "100%", flex: 1, minHeight: "320px", marginBottom: "24px" },
   exportBtn: { padding: "6px 14px", background: "#10b981", color: "#fff", border: "none", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }
 };
 // ===============================

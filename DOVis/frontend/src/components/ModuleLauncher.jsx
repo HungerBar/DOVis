@@ -1,5 +1,8 @@
 // 控制的是那个上面的按钮的格式
 
+import { WindowPolicy } from "../config/windowPolicy";
+
+
 const ModuleLauncher = ({ modules, onOpen, hidden}) => {
   return (
     <div style={{
@@ -21,6 +24,9 @@ const ModuleLauncher = ({ modules, onOpen, hidden}) => {
                 
                 hidden: () => hidden(m.id),
               },
+
+              policy: WindowPolicy.getPolicyForModule?.(m.id) || {},  // 通过当前模块 id 获取面板初始化大小
+            
             })
           }
           style={{

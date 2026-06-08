@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { WindowPolicy } from '../config/WindowPolicy';
+import { WindowPolicy } from '../config/windowPolicy';
 
 export function useWindowManager() {
   const zRef = useRef(1000);
