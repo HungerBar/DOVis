@@ -2,6 +2,13 @@ import * as Cesium from 'cesium';
 
 export default class CesiumEngine {
   constructor(container) {
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
+      20.0,
+      -50.0,
+      155.0,
+      30.0
+    );
+
     this.viewer = new Cesium.Viewer(container, {
       animation: false,
       timeline: false,
@@ -12,8 +19,8 @@ export default class CesiumEngine {
       navigationHelpButton: false,
       geocoder: false,
     });
+
     this.viewer.scene.globe.enableLighting = false;
-    //this.viewer.scene.globe.show = false;
   }
 
   getViewer() {
@@ -26,6 +33,22 @@ export default class CesiumEngine {
 
   flyHome(duration = 0) {
     this.viewer?.camera?.flyHome?.(duration);
+  }
+
+  flyDefault(duration = 1.5) {
+    this.viewer?.camera?.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(
+        75.0,
+        -10.0,
+        14000000
+      ),
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0,
+      },
+      duration,
+    });
   }
 
   destroy() {

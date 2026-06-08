@@ -40,10 +40,10 @@ export default function CesiumAPIProvider({
         const renderer = getRenderer();
 
         // 1. 隐藏地球表面
-        setGlobeVisible(false);
+        // setGlobeVisible(false);
 
         return renderer.load(url, {
-          autoZoom: false,
+          autoZoom: true,
         });
       },
 
@@ -53,6 +53,8 @@ export default function CesiumAPIProvider({
 
         // 2. 恢复地球表面
         setGlobeVisible(true);
+
+        viewer.camera.flyHome?.(0);
         console.log("clear");
       },
 

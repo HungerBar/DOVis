@@ -1,15 +1,12 @@
+import { useState } from 'react';
+
 import IsoSurfaceRenderer from '../components/IsoSurfaceRenderer';
 import IsoSurfaceControlPanel from '../components/IsoSurfaceControlPanel';
 
 import useIsoSurface from '../hooks/useIsoSurface';
 import useCesiumTiles from '../hooks/useCesiumTiles';
-import { div } from 'three/src/nodes/math/OperatorNode.js';
 
-export default function IsoSurfaceModule({hidden}) {
-  // =====================================
-  // IsoSurface State
-  // =====================================
-
+export default function IsoSurfaceModule({ hidden }) {
   const {
     times,
     timeIndex,
@@ -25,33 +22,57 @@ export default function IsoSurfaceModule({hidden}) {
     handleExportNc,
   } = useIsoSurface();
 
-  // =====================================
-  // Cesium Tiles Command
-  // =====================================
-
   const { load, reset } = useCesiumTiles(
     timeIndex,
     isoValue
   );
 
+  const [previewVisible, setPreviewVisible] = useState(true);
+
+  const togglePreview = () => {
+    setPreviewVisible((visible) => !visible);
+  };
+
+  const handleClose = () => {
+    reset();
+    hidden();
+  };
+
+  const handleRenderCesium = async () => {
+    await load();
+
+    // 渲染到 Cesium 后自动隐藏右侧预览
+    setPreviewVisible(false);
+  };
+
+  const handleEndRenderCesium = () => {
+    reset();
+
+    // 结束 Cesium 渲染后恢复右侧预览
+    setPreviewVisible(true);
+  };
+
   return (
-    <div>
+    <div
+      style={{
+        position: 'relative',
+        width: previewVisible ? '100%' : '320px',
+        height: '100%',
+      }}
+    >
       <button
         style={{
           position: 'absolute',
           top: 1,
           right: 1,
-          zIndex: 5,
+          zIndex: 30,
           background: 'transparent',
           border: 'none',
-
           color: '#fff',
-          cursor: 'pointer'
-        }} 
-        onClick={() => {
-        reset();
-        hidden();
-      }}>
+          cursor: 'pointer',
+        }}
+        onClick={handleClose}
+      >
         x
       </button>
 
@@ -59,6 +80,7 @@ export default function IsoSurfaceModule({hidden}) {
         style={{
           display: 'flex',
           height: '100%',
+          width: previewVisible ? '100%' : '320px',
           background: '#0b1220',
           color: '#fff',
           overflow: 'hidden',
@@ -77,26 +99,31 @@ export default function IsoSurfaceModule({hidden}) {
             setTimeIndex={setTimeIndex}
             isoValue={isoValue}
             setIsoValue={setIsoValue}
-            onRenderCesium={load}
-            endRenderCesium={reset}
+            onRenderCesium={handleRenderCesium}
+            endRenderCesium={handleEndRenderCesium}
             onExportNc={handleExportNc}
+            previewVisible={previewVisible}
+            onTogglePreview={togglePreview}
           />
         </div>
 
         {/* Right Render */}
-        <div
-          style={{
-            flex: 1,
-            position: 'relative',
-          }}
-        >
-          <IsoSurfaceRenderer
-            volume={volume}
-            shape={shape}
-            isoValue={isoValue}
-            loading={loading}
-          />
-        </div>
+        {previewVisible && (
+          <div
+            style={{
+              flex: 1,
+              position: 'relative',
+              minWidth: 0,
+            }}
+          >
+            <IsoSurfaceRenderer
+              volume={volume}
+              shape={shape}
+              isoValue={isoValue}
+              loading={loading}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
