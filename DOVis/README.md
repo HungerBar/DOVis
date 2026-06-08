@@ -253,3 +253,5 @@ export default function IsoSurfaceModule({hidden}) {
 - 设计 ui ，整个面板样式修改 [`eofControlPanel.jsx`](WebGIS\DOVis\frontend\src\components\eofControlPanel.jsx) ；可视化样式修改 [`eofResultPanel.jsx`](WebGIS\DOVis\frontend\src\components\eofResultPanel.jsx)
 
   - 可视化样式修改的时候务必小心，有些必须的结构不要动！
+ 
+- **迁移与合并有啥任务要我完成直接和我说就行！**
