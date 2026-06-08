@@ -9,6 +9,9 @@ import CesiumAPIContext from '../context/CesiumAPIContext';
 import CesiumTilesRenderer from '../engine/CesiumTilesRenderer';
 import CesiumTilesRecovery from '../engine/CesiumRecovery';
 
+let geoJsonLayer = null;
+let geoJsonCache = null;
+
 export default function CesiumAPIProvider({
   viewer,
   children,
@@ -36,6 +39,8 @@ export default function CesiumAPIProvider({
     };
 
     return {
+      
+      // ============ 3Dtiles相关API =============
       loadTileset: async (url) => {
         const renderer = getRenderer();
 
@@ -77,8 +82,72 @@ export default function CesiumAPIProvider({
       cancelFlight: () => {
         viewer.camera.cancelFlight?.();
       },
+
+      // ============ GeoJSON相关API =============
+      loadGeoJson: async (url) => {
+        if (!viewer) return;
+
+        const Cesium = await import('cesium');
+
+        try {
+          // 1. 清旧图层
+          if (geoJsonLayer) {
+            viewer.dataSources.remove(geoJsonLayer, true);
+            geoJsonLayer = null;
+          }
+
+          // 2. 加载 GeoJSON
+          const ds = await Cesium.GeoJsonDataSource.load(url, {
+            clampToGround: true,
+          });
+
+          geoJsonLayer = ds;
+          viewer.dataSources.add(ds);
+
+          await viewer.zoomTo(ds);
+
+          console.log('[Cesium] GeoJSON loaded');
+        } catch (e) {
+          console.error('[GeoJSON load error]', e);
+        }
+      },
+
+      clearGeoJson: () => {
+        if (!viewer) return;
+
+        if (geoJsonLayer) {
+          viewer.dataSources.remove(geoJsonLayer, true);
+          geoJsonLayer = null;
+        }
+
+        console.log('[Cesium] GeoJSON cleared');
+      },
+      
+      geojsonRecover: async () => {
+        if (!viewer) return;
+
+        try {
+          if (geoJsonLayer) {
+            viewer.dataSources.remove(geoJsonLayer, true);
+            geoJsonLayer = null;
+          }
+
+          if (geoJsonCache) {
+            geoJsonLayer = geoJsonCache;
+            viewer.dataSources.add(geoJsonCache);
+
+            await viewer.zoomTo(geoJsonCache);
+          }
+
+          console.log('[Cesium] GeoJSON recovered');
+        } catch (e) {
+          console.error('[GeoJSON recover error]', e);
+        }
+      },
     };
   }, [viewer]);
+
+
 
   return (
     <CesiumAPIContext.Provider value={api}>

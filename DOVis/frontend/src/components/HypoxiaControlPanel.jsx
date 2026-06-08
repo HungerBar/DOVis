@@ -2,14 +2,17 @@
   panel: {
     width: '320px',
     height: '100vh',
-    padding: '24px 20px',
+    padding: '12px 12px',
     background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)',
     color: '#f8fafc',
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
+    gap: '16px',
     boxSizing: 'border-box',
+
     overflowY: 'auto',
+    overflowX: 'hidden',
+
     flexShrink: 0,
     borderRight: '1px solid rgba(148,163,184,0.15)',
     boxShadow: '4px 0 20px rgba(0,0,0,0.25)',
@@ -24,11 +27,11 @@
   section: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px',
-    padding: '16px',
+    gap: '4px',
+    padding: '6px',
     background: 'rgba(30,41,59,0.75)',
     border: '1px solid rgba(148,163,184,0.12)',
-    borderRadius: '16px',
+    borderRadius: '12px',
     backdropFilter: 'blur(8px)',
   },
   labelRow: {
@@ -48,18 +51,19 @@
     width: '100%',
     cursor: 'pointer',
     accentColor: '#38bdf8',
+    margin: '2px 0',
   },
   timeText: {
-    fontSize: '0.85rem',
+    fontSize: '0.8rem',
     color: '#94a3b8',
-    padding: '8px 10px',
+    padding: '6px 8px',
     background: 'rgba(15,23,42,0.7)',
-    borderRadius: '10px',
+    borderRadius: '8px',
     wordBreak: 'break-word',
   },
   buttonGroup: {
     display: 'flex',
-    gap: '12px',
+    gap: '8px',
     flexWrap: 'wrap',
   },
   primaryButton: {
@@ -95,6 +99,8 @@ const HypoxiaControlPanel = ({
   setTimeIndex,
   threshold,
   setThreshold,
+  depthIndex,
+  setDepthIndex,
   onRenderCesium,
   endRenderCesium,
   onExportNc,
@@ -129,13 +135,34 @@ const HypoxiaControlPanel = ({
         <input
           type="range"
           min={0}
-          max={100}
+          max={500}
           step={1}
           value={threshold}
           onChange={(e) => setThreshold(Number(e.target.value))}
           style={styles.slider}
         />
-        <div style={styles.timeText}>可选范围：0 - 100</div>
+        <div style={styles.timeText}>可选范围：0 - 500</div>
+      </div>
+
+      <div style={styles.section}>
+        <div style={styles.labelRow}>
+          <span>Depth Level</span>
+          <span style={styles.valueText}>{depthIndex}</span>
+        </div>
+
+        <input
+          type="range"
+          min={0}
+          max={10}
+          step={1}
+          value={depthIndex}
+          onChange={(e) => setDepthIndex(Number(e.target.value))}
+          style={styles.slider}
+        />
+
+        <div style={styles.timeText}>
+          Depth Index（0 = surface，越大越深）
+        </div>
       </div>
 
       <div style={styles.section}>
