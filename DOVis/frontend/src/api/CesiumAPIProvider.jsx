@@ -11,6 +11,9 @@ import CesiumAPIContext from '../context/CesiumAPIContext';
 import CesiumTilesRenderer from '../engine/CesiumTilesRenderer';
 import CesiumTilesRecovery from '../engine/CesiumRecovery';
 
+let geoJsonLayer = null;
+let geoJsonCache = null;
+
 export default function CesiumAPIProvider({
   viewer,
   children,
@@ -39,10 +42,11 @@ export default function CesiumAPIProvider({
     };
 
     return {
+      // ============ 3D Tiles API =============
       loadTileset: async (url) => {
         const renderer = getRenderer();
 
-        // 1. 隐藏地球表面
+        // 如果希望加载 3D Tiles 时隐藏地球表面，取消下一行注释
         // setGlobeVisible(false);
 
         return renderer.load(url, {
@@ -54,7 +58,6 @@ export default function CesiumAPIProvider({
         rendererRef.current?.destroy?.();
         rendererRef.current = null;
 
-        // 2. 恢复地球表面
         setGlobeVisible(true);
 
         viewer.camera.flyHome?.(0);
@@ -71,7 +74,6 @@ export default function CesiumAPIProvider({
 
         recovery.recover();
 
-        // 3. 恢复地球表面
         setGlobeVisible(true);
       },
 
@@ -105,6 +107,66 @@ export default function CesiumAPIProvider({
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
         return handler;
+      },
+
+      // ============ GeoJSON API =============
+      loadGeoJson: async (url) => {
+        if (!viewer) return;
+
+        try {
+          if (geoJsonLayer) {
+            viewer.dataSources.remove(geoJsonLayer, true);
+            geoJsonLayer = null;
+          }
+
+          const ds = await Cesium.GeoJsonDataSource.load(url, {
+            clampToGround: true,
+          });
+
+          geoJsonLayer = ds;
+          geoJsonCache = ds;
+
+          viewer.dataSources.add(ds);
+
+          await viewer.zoomTo(ds);
+
+          console.log('[Cesium] GeoJSON loaded');
+        } catch (e) {
+          console.error('[GeoJSON load error]', e);
+        }
+      },
+
+      clearGeoJson: () => {
+        if (!viewer) return;
+
+        if (geoJsonLayer) {
+          viewer.dataSources.remove(geoJsonLayer, true);
+          geoJsonLayer = null;
+        }
+
+        console.log('[Cesium] GeoJSON cleared');
+      },
+
+      geojsonRecover: async () => {
+        if (!viewer) return;
+
+        try {
+          if (geoJsonLayer) {
+            viewer.dataSources.remove(geoJsonLayer, true);
+            geoJsonLayer = null;
+          }
+
+          if (geoJsonCache) {
+            geoJsonLayer = geoJsonCache;
+            viewer.dataSources.add(geoJsonCache);
+
+            await viewer.zoomTo(geoJsonCache);
+          }
+
+          console.log('[Cesium] GeoJSON recovered');
+        } catch (e) {
+          console.error('[GeoJSON recover error]', e);
+        }
       },
     };
   }, [viewer]);
