@@ -1,6 +1,7 @@
 import IsoSurfaceModule from '../modules/IsoSurfaceModule';
 import ProfileModule from '../modules/ProfileModule';
 import EOFModule from '../modules/eofModule';
+import HypoxiaModule from '../modules/HypoxiaModule';
 
 export const moduleConfig = [
   {
@@ -19,6 +20,12 @@ export const moduleConfig = [
     id: 'eof',
     title: 'EOF',
     component: EOFModule,
+    props: {},
+  },
+  {
+    id: 'hypoxia',
+    title: 'Hypoxia',
+    component: HypoxiaModule,
     props: {},
   },
 ];
