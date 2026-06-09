@@ -76,7 +76,7 @@ export default function ProfileModule({ hidden }) {
         {/* Left Panel */}
         <div
           style={{
-            width: 280,
+            width: 250,
             flexShrink: 0,
           }}
         >

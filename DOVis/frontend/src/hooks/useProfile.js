@@ -70,8 +70,7 @@ export default function useProfile() {
   }, [selectedPoint, timeIndex]);
 
   // Fetch section when sectionPoints or time changes
-  const fetchSection = useCallback(async (overrideTimeIndex) => {
-    const ti = overrideTimeIndex ?? timeIndex;
+  const fetchSection = useCallback(async () => {
     if (sectionPoints.length < 2) return;
 
     setLoading(true);
@@ -83,7 +82,7 @@ export default function useProfile() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           points: sectionPoints,
-          time_index: ti,
+          time_index: timeIndex,
         }),
       });
 
@@ -101,7 +100,7 @@ export default function useProfile() {
   // Auto-refresh section when timeIndex changes (if already loaded)
   useEffect(() => {
     if (sectionData && sectionPoints.length >= 2) {
-      fetchSection(timeIndex);
+      fetchSection();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeIndex]);

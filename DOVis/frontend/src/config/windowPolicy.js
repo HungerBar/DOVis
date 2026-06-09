@@ -6,9 +6,9 @@ export const WindowPolicy = {
     x: 120,
     y: 120,
     width: 700,
-    height: 500,
+    height: 550,
 
-    minWidth: 300,
+    minWidth: 650,
     minHeight: 200,
 
     resizable: true,
