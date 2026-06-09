@@ -19,6 +19,8 @@ export default function CesiumAPIProvider({
   children,
 }) {
   const rendererRef = useRef(null);
+  const entitiesRef = useRef(new Set());
+  const handlerRef = useRef(null);
 
   const setGlobeVisible = (visible) => {
     if (!viewer?.scene?.globe) return;
@@ -41,6 +43,24 @@ export default function CesiumAPIProvider({
       return rendererRef.current;
     };
 
+    const removeHandler = (handler) => {
+      if (handler && !handler.isDestroyed?.()) {
+        handler.destroy();
+      }
+
+      if (handlerRef.current === handler) {
+        handlerRef.current = null;
+      }
+    };
+
+    const removeAllPoints = () => {
+      for (const entity of entitiesRef.current) {
+        viewer.entities.remove(entity);
+      }
+
+      entitiesRef.current.clear();
+    };
+
     return {
       // ============ 3D Tiles API =============
       loadTileset: async (url) => {
@@ -61,7 +81,7 @@ export default function CesiumAPIProvider({
         setGlobeVisible(true);
 
         viewer.camera.flyHome?.(0);
-        console.log('clear');
+        console.log('[Cesium] Tileset cleared');
       },
 
       tilesRecover: () => {
@@ -77,6 +97,7 @@ export default function CesiumAPIProvider({
         setGlobeVisible(true);
       },
 
+      // ============ Camera API =============
       flyHome: () => {
         viewer.camera.flyHome?.(0);
       },
@@ -85,7 +106,16 @@ export default function CesiumAPIProvider({
         viewer.camera.cancelFlight?.();
       },
 
+      // ============ Click Pick API =============
       registerClickHandler: (callback) => {
+        if (
+          handlerRef.current &&
+          !handlerRef.current.isDestroyed?.()
+        ) {
+          handlerRef.current.destroy();
+          handlerRef.current = null;
+        }
+
         const handler = new Cesium.ScreenSpaceEventHandler(
           viewer.scene.canvas
         );
@@ -106,8 +136,48 @@ export default function CesiumAPIProvider({
           });
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
+        handlerRef.current = handler;
+
         return handler;
       },
+
+      removeHandler,
+
+      // ============ Point Entity API =============
+      addPoint: (lat, lon) => {
+        const entity = viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(lon, lat, 0),
+          point: {
+            pixelSize: 12,
+            color: Cesium.Color.fromCssColorString('#38bdf8'),
+            outlineColor: Cesium.Color.fromCssColorString('#ffffff'),
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          },
+          label: {
+            text: `${lat.toFixed(4)}°N  ${lon.toFixed(4)}°E`,
+            font: '12px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -14),
+          },
+        });
+
+        entitiesRef.current.add(entity);
+
+        return entity;
+      },
+
+      removeEntity: (entity) => {
+        if (!entity) return;
+
+        viewer.entities.remove(entity);
+        entitiesRef.current.delete(entity);
+      },
+
+      removeAllPoints,
 
       // ============ GeoJSON API =============
       loadGeoJson: async (url) => {
@@ -167,6 +237,32 @@ export default function CesiumAPIProvider({
         } catch (e) {
           console.error('[GeoJSON recover error]', e);
         }
+      },
+
+      // ============ Global Cleanup API =============
+      cleanupAll: () => {
+        removeAllPoints();
+
+        if (
+          handlerRef.current?.destroy &&
+          !handlerRef.current.isDestroyed?.()
+        ) {
+          handlerRef.current.destroy();
+        }
+
+        handlerRef.current = null;
+
+        rendererRef.current?.destroy?.();
+        rendererRef.current = null;
+
+        if (geoJsonLayer) {
+          viewer.dataSources.remove(geoJsonLayer, true);
+          geoJsonLayer = null;
+        }
+
+        setGlobeVisible(true);
+
+        console.log('[Cesium] Cleanup all');
       },
     };
   }, [viewer]);
