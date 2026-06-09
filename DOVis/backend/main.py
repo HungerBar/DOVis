@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+import shutil
 
 from backend.api.routers import (
     times,
@@ -27,13 +29,32 @@ TILES_DIR = os.path.normpath(TILES_DIR)
 import mimetypes
 mimetypes.add_type("application/octet-stream", ".b3dm")
 
-os.makedirs(TILES_DIR, exist_ok=True)
 
 app = FastAPI(
     title="DOVis API",
     version="1.0.0"
 )
 
+
+TILES_HYPOXIA_DIR = os.path.join(TILES_DIR, "hypoxia")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    # ===== 启动时清空 hypoxia tiles =====
+    if os.path.exists(TILES_HYPOXIA_DIR):
+        shutil.rmtree(TILES_HYPOXIA_DIR)
+        print(f"[CACHE] cleared: {TILES_HYPOXIA_DIR}")
+
+    os.makedirs(TILES_HYPOXIA_DIR, exist_ok=True)
+
+    yield
+
+
+app.router.lifespan_context = lifespan
+
+
+os.makedirs(TILES_DIR, exist_ok=True)
 # CORS配置
 app.add_middleware(
     CORSMiddleware,
