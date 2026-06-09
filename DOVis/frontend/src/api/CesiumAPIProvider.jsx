@@ -4,6 +4,8 @@ import {
   useRef,
 } from 'react';
 
+import * as Cesium from 'cesium';
+
 import CesiumAPIContext from '../context/CesiumAPIContext';
 
 import CesiumTilesRenderer from '../engine/CesiumTilesRenderer';
@@ -78,6 +80,26 @@ export default function CesiumAPIProvider({
 
       cancelFlight: () => {
         viewer.camera.cancelFlight?.();
+      },
+
+      registerClickHandler: (callback) => {
+        const handler = new Cesium.ScreenSpaceEventHandler(
+          viewer.scene.canvas
+        );
+        handler.setInputAction((movement) => {
+          const cartesian =
+            viewer.scene.pickPosition(movement.position) ??
+            viewer.camera.pickEllipsoid(movement.position);
+          if (cartesian) {
+            const cartographic =
+              Cesium.Cartographic.fromCartesian(cartesian);
+            callback({
+              lon: Cesium.Math.toDegrees(cartographic.longitude),
+              lat: Cesium.Math.toDegrees(cartographic.latitude),
+            });
+          }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        return handler;
       },
     };
   }, [viewer]);

@@ -7,10 +7,11 @@ from typing import Any
 
 import numpy as np
 
-from backend.isoGeometry.marching import run_marching_cubes_ecef
-from backend.isoExport.gltf_export import export_glb
-from backend.isoExport.b3dm_export import glb_to_b3dm
-from backend.isoExport.tileset import build_tileset
+# Lazy imports — only needed when build_tileset_service is called
+# from backend.isoGeometry.marching import run_marching_cubes_ecef
+# from backend.isoExport.gltf_export import export_glb
+# from backend.isoExport.b3dm_export import glb_to_b3dm
+# from backend.isoExport.tileset import build_tileset
 
 # =========================================================
 # config
@@ -246,6 +247,8 @@ def build_tileset_service(
         # 2.1 marching cubes -> absolute ECEF mesh
         # -------------------------------------------------
 
+        from backend.isoGeometry.marching import run_marching_cubes_ecef
+
         verts_ecef, faces, meta = run_marching_cubes_ecef(
             time_idx=time_index,
             iso_value=iso_value,
@@ -290,6 +293,8 @@ def build_tileset_service(
         # 2.4 export GLB
         # -------------------------------------------------
 
+        from backend.isoExport.gltf_export import export_glb
+
         export_glb(
             vertices=local_vertices,
             faces=faces,
@@ -308,6 +313,8 @@ def build_tileset_service(
         with open(glb_path, "rb") as f:
             glb_bytes = f.read()
 
+        from backend.isoExport.b3dm_export import glb_to_b3dm
+
         b3dm_bytes = glb_to_b3dm(glb_bytes)
 
         with open(b3dm_path, "wb") as f:
@@ -322,6 +329,8 @@ def build_tileset_service(
         #
         # content.uri must point to B3DM, not GLB.
         # -------------------------------------------------
+
+        from backend.isoExport.tileset import build_tileset
 
         tileset = build_tileset(
             b3dm_uri="iso.b3dm",
