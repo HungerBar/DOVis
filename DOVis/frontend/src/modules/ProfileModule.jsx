@@ -23,10 +23,11 @@ export default function ProfileModule({ hidden }) {
     clearSectionPoints,
 
     reset,
+    cleanup,
   } = useProfile();
 
   const handleClose = () => {
-    reset();
+    cleanup();
     hidden();
   };
 
