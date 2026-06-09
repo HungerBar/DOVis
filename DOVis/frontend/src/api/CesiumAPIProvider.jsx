@@ -4,6 +4,8 @@ import {
   useRef,
 } from 'react';
 
+import * as Cesium from 'cesium';
+
 import CesiumAPIContext from '../context/CesiumAPIContext';
 
 import CesiumTilesRenderer from '../engine/CesiumTilesRenderer';
@@ -32,6 +34,7 @@ export default function CesiumAPIProvider({
       if (!rendererRef.current) {
         rendererRef.current = new CesiumTilesRenderer(viewer);
       }
+
       return rendererRef.current;
     };
 
@@ -55,7 +58,7 @@ export default function CesiumAPIProvider({
         setGlobeVisible(true);
 
         viewer.camera.flyHome?.(0);
-        console.log("clear");
+        console.log('clear');
       },
 
       tilesRecover: () => {
@@ -78,6 +81,30 @@ export default function CesiumAPIProvider({
 
       cancelFlight: () => {
         viewer.camera.cancelFlight?.();
+      },
+
+      registerClickHandler: (callback) => {
+        const handler = new Cesium.ScreenSpaceEventHandler(
+          viewer.scene.canvas
+        );
+
+        handler.setInputAction((movement) => {
+          const cartesian =
+            viewer.scene.pickPosition(movement.position) ??
+            viewer.camera.pickEllipsoid(movement.position);
+
+          if (!cartesian) return;
+
+          const cartographic =
+            Cesium.Cartographic.fromCartesian(cartesian);
+
+          callback({
+            lon: Cesium.Math.toDegrees(cartographic.longitude),
+            lat: Cesium.Math.toDegrees(cartographic.latitude),
+          });
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        return handler;
       },
     };
   }, [viewer]);
