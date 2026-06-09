@@ -1,5 +1,6 @@
 import IsoSurfaceModule from '../modules/IsoSurfaceModule';
 import ProfileModule from '../modules/ProfileModule';
+import EOFModule from '../modules/eofModule';
 
 export const moduleConfig = [
   {
@@ -12,6 +13,12 @@ export const moduleConfig = [
     id: 'profile',
     title: 'Vertical Profile',
     component: ProfileModule,
+    props: {},
+  },
+  {
+    id: 'eof',
+    title: 'EOF',
+    component: EOFModule,
     props: {},
   },
 ];
