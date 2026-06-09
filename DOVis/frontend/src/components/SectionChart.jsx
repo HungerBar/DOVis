@@ -49,11 +49,20 @@ function bilinear(grid, depthSet, distSet, dist, depth) {
   while (di < depthSet.length && depthSet[di] < depth) di++;
   let xi = 0;
   while (xi < distSet.length && distSet[xi] < dist) xi++;
-  if (di === 0 || xi === 0 || di >= depthSet.length || xi >= distSet.length) return NaN;
+
+  // Clamp to grid bounds instead of returning NaN
+  di = Math.max(1, Math.min(di, depthSet.length - 1));
+  xi = Math.max(1, Math.min(xi, distSet.length - 1));
+
   const d0 = di - 1, d1 = di, x0 = xi - 1, x1 = xi;
   const v00 = grid[d0]?.[x0], v01 = grid[d1]?.[x0];
   const v10 = grid[d0]?.[x1], v11 = grid[d1]?.[x1];
-  if ([v00, v01, v10, v11].some((v) => v === undefined || isNaN(v))) return NaN;
+
+  // Fall back to nearest valid neighbor if any corner is NaN
+  const vs = [v00, v01, v10, v11].filter((v) => v !== undefined && !isNaN(v));
+  if (vs.length === 0) return NaN;
+  if (vs.length < 4) return vs[0];
+
   const fy = (depth - depthSet[d0]) / ((depthSet[d1] - depthSet[d0]) || 1);
   const fx = (dist - distSet[x0]) / ((distSet[x1] - distSet[x0]) || 1);
   return v00 * (1 - fx) * (1 - fy) + v10 * fx * (1 - fy) + v01 * (1 - fx) * fy + v11 * fx * fy;

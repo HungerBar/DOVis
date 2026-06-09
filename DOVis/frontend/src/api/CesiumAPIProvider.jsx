@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/immutability */
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 import * as Cesium from 'cesium';
 
@@ -9,6 +9,9 @@ export default function CesiumAPIProvider({
   viewer,
   children,
 }) {
+  const entitiesRef = useRef(new Set());
+  const handlerRef = useRef(null);
+
   const api = useMemo(() => {
     if (!viewer) return null;
 
@@ -38,7 +41,64 @@ export default function CesiumAPIProvider({
             });
           }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        handlerRef.current = handler;
         return handler;
+      },
+
+      removeHandler: (handler) => {
+        if (handler && !handler.isDestroyed?.()) {
+          handler.destroy();
+        }
+        if (handlerRef.current === handler) {
+          handlerRef.current = null;
+        }
+      },
+
+      addPoint: (lat, lon) => {
+        const entity = viewer.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(lon, lat, 0),
+          point: {
+            pixelSize: 12,
+            color: Cesium.Color.fromCssColorString('#38bdf8'),
+            outlineColor: Cesium.Color.fromCssColorString('#ffffff'),
+            outlineWidth: 2,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          },
+          label: {
+            text: `${lat.toFixed(4)}°N  ${lon.toFixed(4)}°E`,
+            font: '12px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -14),
+          },
+        });
+        entitiesRef.current.add(entity);
+        return entity;
+      },
+
+      removeEntity: (entity) => {
+        if (entity) {
+          viewer.entities.remove(entity);
+          entitiesRef.current.delete(entity);
+        }
+      },
+
+      removeAllPoints: () => {
+        for (const entity of entitiesRef.current) {
+          viewer.entities.remove(entity);
+        }
+        entitiesRef.current.clear();
+      },
+
+      cleanupAll: () => {
+        api.removeAllPoints();
+        if (handlerRef.current?.destroy && !handlerRef.current.isDestroyed?.()) {
+          handlerRef.current.destroy();
+        }
+        handlerRef.current = null;
       },
     };
   }, [viewer]);

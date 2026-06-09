@@ -17,6 +17,8 @@ export default function useProfile() {
   const [sectionData, setSectionData] = useState(null);
 
   const handlerRef = useRef(null);
+  const pointEntitiesRef = useRef([]);
+  const verticalEntityRef = useRef(null);
 
   // Fetch times list
   useEffect(() => {
@@ -33,15 +35,29 @@ export default function useProfile() {
     handlerRef.current = api.registerClickHandler((pos) => {
       if (mode === 'section') {
         setSectionPoints((prev) => [...prev, pos]);
+        if (api.addPoint) {
+          const entity = api.addPoint(pos.lat, pos.lon);
+          pointEntitiesRef.current.push(entity);
+        }
       } else {
+        // Vertical mode: remove previous marker, add new one
+        if (verticalEntityRef.current) {
+          api.removeEntity?.(verticalEntityRef.current);
+        }
         setSelectedPoint(pos);
+        if (api.addPoint) {
+          verticalEntityRef.current = api.addPoint(pos.lat, pos.lon);
+        }
       }
     });
 
     return () => {
-      if (handlerRef.current?.destroy) {
-        handlerRef.current.destroy();
+      if (handlerRef.current) {
+        api.removeHandler?.(handlerRef.current);
+        handlerRef.current = null;
       }
+      // Clear all globe markers when switching modes
+      api.removeAllPoints?.();
     };
   }, [api, mode]);
 
@@ -105,18 +121,38 @@ export default function useProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeIndex]);
 
-  const reset = useCallback(() => {
+  const clearSectionPoints = useCallback(() => {
+    setSectionPoints([]);
+    setSectionData(null);
+    api.removeAllPoints?.();
+    pointEntitiesRef.current = [];
+  }, [api]);
+
+  const cleanup = useCallback(() => {
+    api.removeAllPoints?.();
+    pointEntitiesRef.current = [];
+    verticalEntityRef.current = null;
+    if (handlerRef.current) {
+      api.removeHandler?.(handlerRef.current);
+      handlerRef.current = null;
+    }
     setSelectedPoint(null);
     setProfileData(null);
     setSectionPoints([]);
     setSectionData(null);
     setError(null);
-  }, []);
+  }, [api]);
 
-  const clearSectionPoints = useCallback(() => {
+  const reset = useCallback(() => {
+    api.removeAllPoints?.();
+    pointEntitiesRef.current = [];
+    verticalEntityRef.current = null;
+    setSelectedPoint(null);
+    setProfileData(null);
     setSectionPoints([]);
     setSectionData(null);
-  }, []);
+    setError(null);
+  }, [api]);
 
   return {
     times,
@@ -137,5 +173,6 @@ export default function useProfile() {
     clearSectionPoints,
 
     reset,
+    cleanup,
   };
 }
