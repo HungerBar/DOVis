@@ -269,14 +269,11 @@ def run_marching_cubes_ecef(
     # 6. bounding sphere
     # =====================================================
 
-    center = np.array(
-        [0.0, 0.0, 0.0],
-        dtype=np.float64,
-    )
+    center = np.mean(verts_ecef, axis=0)
 
     radius = float(
         np.linalg.norm(
-            verts_ecef,
+            verts_ecef - center,
             axis=1,
         ).max()
     )

@@ -64,7 +64,7 @@ def export_glb(
 # 1. GLB → 3D Tiles
 # ----------------------------
 
-def glb_to_3dtiles( 
+def glb_to_3dtiles(
     glb_path: str,
     output_dir: str
 ):
@@ -72,56 +72,34 @@ def glb_to_3dtiles(
     tileset_path = os.path.join(output_dir, "tileset.json")
     out_glb_path = os.path.join(output_dir, "boundary.glb")
 
-    # -------------------------
-    # 读取 GLB，计算 center
-    # -------------------------
     mesh = trimesh.load(glb_path, force='mesh')
 
     if mesh is None or len(mesh.vertices) == 0:
         raise ValueError("GLB is empty")
 
+    import numpy as np
     center = mesh.bounds.mean(axis=0)
-
-    print("[INFO] GLB center:", center)
-
-    # -------------------------
-    # 平移到局部坐标（Blender友好）
-    # -------------------------
-    mesh.apply_translation(-center)
+    radius = float(np.linalg.norm(mesh.vertices - center, axis=1).max())
 
     mesh.export(out_glb_path)
 
-    # -------------------------
-    # 写 tileset.json（关键修改）
-    # -------------------------
     tileset = {
         "asset": {
-            "version": "1.1"
+            "version": "1.1",
+            "gltfUpAxis": "Z"
         },
-        "geometricError": 5000,
+        "geometricError": radius,
         "root": {
             "boundingVolume": {
-                "box": [
-                    0, 0, 0,
-                    1, 0, 0,
-                    0, 1, 0,
-                    0, 0, 1
+                "sphere": [
+                    float(center[0]),
+                    float(center[1]),
+                    float(center[2]),
+                    radius
                 ]
             },
             "geometricError": 0,
             "refine": "ADD",
-
-            # ⭐⭐⭐关键修复点
-            "transform": [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                float(center[0]),
-                float(center[1]),
-                float(center[2]),
-                1
-            ],
-
             "content": {
                 "uri": "boundary.glb"
             }

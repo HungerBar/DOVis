@@ -52,6 +52,8 @@ export function useWindowManager() {
           draggable: p.draggable,
 
           visible: true,
+          maximized: false,
+          prevBounds: null,
           zIndex: zRef.current,
         },
       ];
@@ -66,6 +68,34 @@ export function useWindowManager() {
     );
   };
 
+  const maximize = (id) => {
+    setWindows(prev =>
+      prev.map(w => {
+        if (w.id !== id) return w;
+        if (w.maximized) {
+          return {
+            ...w,
+            maximized: false,
+            x: w.prevBounds.x,
+            y: w.prevBounds.y,
+            width: w.prevBounds.width,
+            height: w.prevBounds.height,
+            prevBounds: null,
+          };
+        }
+        return {
+          ...w,
+          maximized: true,
+          prevBounds: { x: w.x, y: w.y, width: w.width, height: w.height },
+          x: 0,
+          y: 56,
+          width: window.innerWidth,
+          height: window.innerHeight - 56,
+        };
+      })
+    );
+  };
+
   const update = (id, patch) => {
     setWindows(prev =>
       prev.map(w =>
@@ -74,5 +104,5 @@ export function useWindowManager() {
     );
   };
 
-  return { windows, open, hidden, update, focus};
+  return { windows, open, hidden, update, focus, maximize };
 }

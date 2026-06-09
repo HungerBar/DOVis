@@ -54,10 +54,10 @@ def export_glb(vertices, faces, path=None, origin=None):
         raise ValueError("Empty mesh input")
 
     # =========================================================
-    # 2. vertex colors (debug only)
+    # 2. vertex colors
     # =========================================================
-    YELLOW = np.array([255, 255, 0, 255], dtype=np.uint8)
-    colors = np.tile(YELLOW, (len(vertices), 1))
+    COLOR = np.array([0, 180, 220, 180], dtype=np.uint8)
+    colors = np.tile(COLOR, (len(vertices), 1))
 
     # =========================================================
     # 3. build mesh (NO processing)
@@ -78,7 +78,9 @@ def export_glb(vertices, faces, path=None, origin=None):
     # =========================================================
     # 5. minimal cleanup ONLY (ECEF-safe)
     # =========================================================
-    mesh.remove_degenerate_faces()
+    mask = mesh.nondegenerate_faces()
+    if not mask.all():
+        mesh.update_faces(mask)
 
     # ⚠️ IMPORTANT:
     # do NOT remove_unreferenced_vertices in scientific meshes blindly

@@ -64,7 +64,7 @@ def build_tileset(
     # 4. tileset root
     # =========================================================
     return {
-        "asset": {"version": "1.0"},
+        "asset": {"version": "1.0", "gltfUpAxis": "Z"},
         "geometricError": float(geometric_error),
         "root": {
             "transform": transform,

@@ -121,8 +121,8 @@ def export_tileset(time_idx: int, iso_value: float, out_root: str = "tiles"):
 def _build_result(key, glb_path, b3dm_path, tileset_path, cached):
     return {
         "cache_key": key,
-        "tileset_url": f"{BASE_URL}/tiles/{key}/tileset.json",
-        "b3dm_url": f"{BASE_URL}/tiles/{key}/iso.b3dm",
+        "tileset_url": f"/tiles/{key}/tileset.json",
+        "b3dm_url": f"/tiles/{key}/iso.b3dm",
         "cached": cached,
         "paths": {
             "glb": glb_path,

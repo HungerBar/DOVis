@@ -18,6 +18,7 @@ export function FloatingWindowLayer({
   onClose,
   onUpdate,
   onFocus,
+  onMaximize,
 }) {
   return (
     <>
@@ -40,16 +41,16 @@ export function FloatingWindowLayer({
               }}
               onMouseDown={() => onFocus(w.id)}
             >
-              {/* DRAG HEADER */}
+              {/* TITLE BAR */}
               {w.draggable !== false && (
                 <div
                   className="header"
                   onMouseDown={(e) => {
+                    if (e.target.closest('.windowControls')) return;
                     e.preventDefault();
 
                     const sx = e.clientX;
                     const sy = e.clientY;
-
                     const ox = w.x;
                     const oy = w.y;
 
@@ -69,26 +70,41 @@ export function FloatingWindowLayer({
                     window.addEventListener('mouseup', up);
                   }}
                 >
-                  <span>{w.id}</span>
+                  <span className="windowTitle">{w.id}</span>
 
-                  {/* centered hidden button */}
-                  <button
-                    className="hiddenBtn"
-                    onClick={() => onClose(w.id)}
-                  >
-                    hidden
-                  </button>
-
+                  <div className="windowControls">
+                    <button
+                      className="winBtn winMin"
+                      onClick={() => onClose(w.id)}
+                      aria-label="Minimize"
+                    >
+                      &#x2014;
+                    </button>
+                    <button
+                      className="winBtn winMax"
+                      onClick={() => onMaximize(w.id)}
+                      aria-label="Maximize"
+                    >
+                      {w.maximized ? '⧉' : '□'}
+                    </button>
+                    <button
+                      className="winBtn winClose"
+                      onClick={() => onClose(w.id)}
+                      aria-label="Close"
+                    >
+                      &#x2715;
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* CONTENT */}
-              <div className="content" style={{ height: 'calc(100% - 36px)' }}>
+              <div className="content" style={{ height: 'calc(100% - 32px)' }}>
                 <Comp {...w.props} />
               </div>
 
               {/* RESIZE HANDLE */}
-              {w.resizable !== false && (
+              {w.resizable !== false && !w.maximized && (
                 <div
                   className="resizeHandle"
                   onMouseDown={(e) => {
@@ -96,21 +112,15 @@ export function FloatingWindowLayer({
 
                     const sx = e.clientX;
                     const sy = e.clientY;
-
                     const ow = w.width;
                     const oh = w.height;
-
                     const minW = w.minWidth;
                     const minH = w.minHeight;
 
                     const move = (ev) => {
                       const newW = Math.max(minW, ow + ev.clientX - sx);
                       const newH = Math.max(minH, oh + ev.clientY - sy);
-
-                      onUpdate(w.id, {
-                        width: newW,
-                        height: newH,
-                      });
+                      onUpdate(w.id, { width: newW, height: newH });
                     };
 
                     const up = () => {

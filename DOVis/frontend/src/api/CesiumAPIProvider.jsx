@@ -39,9 +39,6 @@ export default function CesiumAPIProvider({
       loadTileset: async (url) => {
         const renderer = getRenderer();
 
-        // 1. 隐藏地球表面
-        setGlobeVisible(false);
-
         return renderer.load(url, {
           autoZoom: false,
         });
@@ -50,10 +47,6 @@ export default function CesiumAPIProvider({
       clearTileset: () => {
         rendererRef.current?.destroy?.();
         rendererRef.current = null;
-
-        // 2. 恢复地球表面
-        setGlobeVisible(true);
-        console.log("clear");
       },
 
       tilesRecover: () => {
@@ -65,9 +58,6 @@ export default function CesiumAPIProvider({
         );
 
         recovery.recover();
-
-        // 3. 恢复地球表面
-        setGlobeVisible(true);
       },
 
       flyHome: () => {

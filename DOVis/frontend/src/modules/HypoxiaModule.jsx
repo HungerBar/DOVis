@@ -16,28 +16,16 @@ export default function HypoxiaModule({ hidden }) {
   const { load, reset, recover } = useHypoxiaTiles(timeIndex, threshold);
 
   return (
-    <div style={{ position: 'relative', height: '100%' }}>
-      <button
-        style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }}
-        onClick={() => {
-          reset();
-          hidden();
-        }}
-      >
-        x
-      </button>
-
-      <HypoxiaControlPanel
-        times={times}
-        timeIndex={timeIndex}
-        setTimeIndex={setTimeIndex}
-        threshold={threshold}
-        setThreshold={setThreshold}
-        onRenderCesium={load}
-        endRenderCesium={recover}
-        onExportNc={handleExportNc}
-        loading={loading}
-      />
-    </div>
+    <HypoxiaControlPanel
+      times={times}
+      timeIndex={timeIndex}
+      setTimeIndex={setTimeIndex}
+      threshold={threshold}
+      setThreshold={setThreshold}
+      onRenderCesium={load}
+      endRenderCesium={() => { recover(); }}
+      onExportNc={handleExportNc}
+      loading={loading}
+    />
   );
 }

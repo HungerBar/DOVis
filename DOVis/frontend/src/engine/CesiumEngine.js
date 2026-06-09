@@ -1,4 +1,7 @@
 import * as Cesium from 'cesium';
+import { CESIUM_TOKEN } from '../config/cesium';
+
+Cesium.Ion.defaultAccessToken = CESIUM_TOKEN;
 
 export default class CesiumEngine {
   constructor(container) {
@@ -13,7 +16,10 @@ export default class CesiumEngine {
       geocoder: false,
     });
     this.viewer.scene.globe.enableLighting = false;
-    //this.viewer.scene.globe.show = false;
+    this.viewer.scene.globe.depthTestAgainstTerrain = false;
+    this.viewer.scene.globe.translucency.enabled = true;
+    this.viewer.scene.globe.translucency.frontFaceAlpha = 0.6;
+    this.viewer.scene.globe.translucency.backFaceAlpha = 0.0;
   }
 
   getViewer() {
