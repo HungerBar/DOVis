@@ -9,6 +9,7 @@ from backend.api.routers import (
     isoExport,
     profile,
     eof,
+    hypoxia,
 )
 from backend.core.clearTileCache import clear_tiles_cache
 
@@ -55,6 +56,7 @@ app.include_router(volume.router, prefix="/api", tags=["volume"])
 app.include_router(isoExport.router, prefix="/api", tags=["isoExport"])
 app.include_router(profile.router, prefix="/api", tags=["profile"])
 app.include_router(eof.router, prefix="/api", tags=["eof"])
+app.include_router(hypoxia.router, prefix="/api/hypoxia", tags=["Hypoxia"])
 
 # =========================================================
 # STATIC TILE SERVER
