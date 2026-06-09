@@ -8,6 +8,7 @@ from backend.api.routers import (
     volume,
     isoExport,
     profile,
+    eof,
 )
 from backend.core.clearTileCache import clear_tiles_cache
 
@@ -39,6 +40,8 @@ def startup_event():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    # 如果只允许本地 Vite 前端访问，可以改成：
+    # allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +54,7 @@ app.include_router(times.router, prefix="/api", tags=["times"])
 app.include_router(volume.router, prefix="/api", tags=["volume"])
 app.include_router(isoExport.router, prefix="/api", tags=["isoExport"])
 app.include_router(profile.router, prefix="/api", tags=["profile"])
+app.include_router(eof.router, prefix="/api", tags=["eof"])
 
 # =========================================================
 # STATIC TILE SERVER
