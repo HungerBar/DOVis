@@ -1,12 +1,14 @@
-﻿import os
+import os
 import json
 import pandas as pd
 import numpy as np
-import alphashape
 from hypoxia.cache_service import build_cache_key, get_cache_dir
 
 from core.dataset import get_ds
 from core.oxygen_reader import load_oxygen_data
+from shapely.geometry import mapping
+from skimage import measure
+from shapely.geometry import Polygon, MultiPolygon, LineString
 from shapely.geometry import mapping
 
 # -----------------------------
@@ -26,20 +28,18 @@ def generate_boundary(
     # ------------------------
     # 1. 基础检查
     # ------------------------
-    report["has_data"] = oxygen_3d is not None
-
     if oxygen_3d is None:
         report["error"] = "oxygen_3d is None"
         return None, report
-
-    report["shape"] = oxygen_3d.shape
 
     if depth_index < 0 or depth_index >= oxygen_3d.shape[0]:
         report["error"] = "depth_index out of range"
         return None, report
 
+    report["shape"] = oxygen_3d.shape
+
     # ------------------------
-    # 2. 切片
+    # 2. 取层数据
     # ------------------------
     layer = oxygen_3d[depth_index, :, :]
 
@@ -48,57 +48,110 @@ def generate_boundary(
     report["layer_mean"] = float(np.nanmean(layer))
 
     # ------------------------
-    # 3. mask
+    # 3. 二值化 mask
     # ------------------------
-    mask = layer < threshold
+    binary = (layer < threshold).astype(np.uint8)
 
     report["threshold"] = threshold
-    report["mask_ratio"] = float(np.mean(mask))
-    report["mask_sum"] = int(np.sum(mask))
+    report["mask_ratio"] = float(np.mean(binary))
+    report["mask_sum"] = int(np.sum(binary))
 
-    if not np.any(mask):
+    if np.sum(binary) == 0:
         report["error"] = "no values below threshold"
         return None, report
 
     # ------------------------
-    # 4. points
+    # 4. 提取等值线（核心）
     # ------------------------
-    lon_grid, lat_grid = np.meshgrid(lons, lats)
+    contours = measure.find_contours(binary, 0.5)
 
-    points = np.column_stack([
-        lon_grid[mask],
-        lat_grid[mask]
-    ])
-
-    report["points_count"] = len(points)
-
-    if len(points) < 4:
-        report["error"] = "too few points"
+    if not contours:
+        report["error"] = "no contours found"
         return None, report
 
+    polygons = []
+
+    lon_min, lon_max = float(lons.min()), float(lons.max())
+    lat_min, lat_max = float(lats.min()), float(lats.max())
+
+    nlon = len(lons)
+    nlat = len(lats)
+
+    # densify 控制参数（越小越密）
+    step = 0.02
+
+    for contour in contours:
+        if len(contour) < 10:
+            continue
+
+        coords = []
+
+        # ------------------------
+        # 4.1 像素坐标 → 经纬度
+        # ------------------------
+        for y, x in contour:
+            lon = np.interp(x, [0, nlon - 1], [lon_min, lon_max])
+            lat = np.interp(y, [0, nlat - 1], [lat_min, lat_max])
+            coords.append((lon, lat))
+
+        # ------------------------
+        # 4.2 闭合
+        # ------------------------
+        if coords[0] != coords[-1]:
+            coords.append(coords[0])
+
+        # ------------------------
+        # 4.3 densify（关键：加密点）
+        # ------------------------
+        line = LineString(coords)
+        length = line.length
+
+        if length == 0:
+            continue
+
+        dense_coords = [
+            line.interpolate(d).coords[0]
+            for d in np.arange(0, length, step)
+        ]
+
+        if len(dense_coords) < 3:
+            continue
+
+        poly = Polygon(dense_coords)
+
+        # ------------------------
+        # 4.4 修复 & 简化
+        # ------------------------
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+
+        if poly.is_empty:
+            continue
+
+        poly = poly.simplify(0.005, preserve_topology=True)
+
+        polygons.append(poly)
+
     # ------------------------
-    # 5. alpha shape
+    # 5. 输出检查
     # ------------------------
-    try:
-        polygon = alphashape.alphashape(points, alpha)
-    except Exception as e:
-        report["error"] = f"alpha shape failed: {str(e)}"
+    if not polygons:
+        report["error"] = "no valid polygons after processing"
         return None, report
 
-    report["alpha"] = alpha
-    report["polygon_empty"] = polygon is None or polygon.is_empty
-
-    if polygon is None or polygon.is_empty:
-        report["error"] = "empty polygon"
-        return None, report
+    if len(polygons) == 1:
+        result_geom = polygons[0]
+    else:
+        result_geom = MultiPolygon(polygons)
 
     # ------------------------
-    # 6. success
+    # 6. report
     # ------------------------
+    report["num_contours"] = len(contours)
+    report["num_polygons"] = len(polygons)
     report["success"] = True
 
-    return polygon, report
-
+    return result_geom, report
 
 # -----------------------------
 # 2. shapely -> geojson
@@ -116,6 +169,7 @@ def calculate_2Dboundary(
     depth_index: int,
     alpha: float = 0.01
 ):
+
     cache_key = build_cache_key(
         time_index,
         threshold,
@@ -140,7 +194,7 @@ def calculate_2Dboundary(
         alpha
     )
 
-    print(pd.DataFrame([report]))
+    # print(pd.DataFrame([report]))
 
     if polygon is None:
         return {
