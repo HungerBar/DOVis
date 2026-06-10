@@ -50,7 +50,7 @@ def get_vertical_profile(lat: float, lon: float, time_index: int) -> dict:
     study_polygon = shape(geojson["features"][0]["geometry"])
 
     if not study_polygon.contains(ShpPoint(lon, lat)):
-        return {"error": "请选择紫色边界内的研究区点位"}
+        return {"error": "选择在紫色范围内的点"}
 
     ds = get_ds()
     ds_t = ds.isel(time=time_index)
@@ -105,7 +105,7 @@ def get_section_profile(points: list[dict], time_index: int) -> dict:
 
     for pt in points:
         if not study_polygon.contains(ShpPoint(pt["lon"], pt["lat"])):
-            return {"error": "请选择紫色边界内的研究区点位", "section": []}
+            return {"error": "选择在紫色范围内的点", "section": []}
 
     ds = get_ds()
     ds_t = ds.isel(time=time_index)

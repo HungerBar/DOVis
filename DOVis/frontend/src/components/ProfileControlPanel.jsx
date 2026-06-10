@@ -196,7 +196,7 @@ export default function ProfileControlPanel({
             </span>
           </div>
           <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
-            请在紫色框内选取研究区点位
+            请在紫色范围内选取研究区点位
           </div>
           {sectionPoints.length >= 2 && (
             <div style={{ fontSize: '0.8rem', color: '#94a3b8', maxHeight: 80, overflowY: 'auto' }}>
