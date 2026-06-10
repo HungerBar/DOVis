@@ -110,6 +110,10 @@ export default function CesiumAPIProvider({
             strokeWidth: 3,
             fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.12),
           });
+          // Remove auto-generated labels from feature properties
+          for (const entity of ds.entities.values) {
+            entity.label = undefined;
+          }
           viewer.dataSources.add(ds);
         } catch (e) {
           console.error('[GeoJSON load error]', e);
@@ -123,6 +127,9 @@ export default function CesiumAPIProvider({
           strokeWidth: 3,
           fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.12),
         }).then((ds) => {
+          for (const entity of ds.entities.values) {
+            entity.label = undefined;
+          }
           viewer.dataSources.add(ds);
         }).catch((e) => {
           console.error('[GeoJSON load error]', e);
