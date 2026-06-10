@@ -82,7 +82,12 @@ export default function useProfile() {
         return r.json();
       })
       .then((data) => {
-        setProfileData(data);
+        if (data.error) {
+          setError(data.error);
+          setProfileData(null);
+        } else {
+          setProfileData(data);
+        }
         setLoading(false);
       })
       .catch((err) => {

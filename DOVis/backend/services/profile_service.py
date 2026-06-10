@@ -40,6 +40,18 @@ def _find_nearest_ocean(lat_arr, lon_arr, o2, lat, lon, max_radius=5):
 
 
 def get_vertical_profile(lat: float, lon: float, time_index: int) -> dict:
+    # Validate point against study area polygon
+    from shapely.geometry import shape, Point as ShpPoint
+    import json, os
+
+    geojson_path = os.path.join(os.path.dirname(__file__), "..", "static", "study_area.geojson")
+    with open(geojson_path, "r") as f:
+        geojson = json.load(f)
+    study_polygon = shape(geojson["features"][0]["geometry"])
+
+    if not study_polygon.contains(ShpPoint(lon, lat)):
+        return {"error": "请选择紫色边界内的研究区点位"}
+
     ds = get_ds()
     ds_t = ds.isel(time=time_index)
 
