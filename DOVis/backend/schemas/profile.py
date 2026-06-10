@@ -32,6 +32,8 @@ class SectionPoint(BaseModel):
     distance_km: float
     depth: float
     oxygen: float
+    lat: float
+    lon: float
 
 
 class SectionResponse(BaseModel):

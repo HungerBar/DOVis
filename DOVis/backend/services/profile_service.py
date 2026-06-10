@@ -137,6 +137,8 @@ def get_section_profile(points: list[dict], time_index: int) -> dict:
                     "distance_km": round(dist_km, 1),
                     "depth": round(float(d_val), 1),
                     "oxygen": round(float(o2_val), 1),
+                    "lat": round(lat, 4),
+                    "lon": round(lon, 4),
                 })
 
         cumulative_km_start += seg_km

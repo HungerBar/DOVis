@@ -39,9 +39,15 @@ function buildGrid(section) {
   const distSet = [...new Set(section.map((p) => p.distance_km))].sort((a, b) => a - b);
   const depthSet = [...new Set(section.map((p) => p.depth))].sort((a, b) => a - b);
   const lookup = {};
-  for (const p of section) lookup[`${p.distance_km}|${p.depth}`] = p.oxygen;
+  const distToLatLon = {};
+  for (const p of section) {
+    lookup[`${p.distance_km}|${p.depth}`] = p.oxygen;
+    if (p.lat != null && !distToLatLon[p.distance_km]) {
+      distToLatLon[p.distance_km] = { lat: p.lat, lon: p.lon };
+    }
+  }
   const grid = depthSet.map((d) => distSet.map((dist) => lookup[`${dist}|${d}`] ?? NaN));
-  return { grid, distSet, depthSet };
+  return { grid, distSet, depthSet, distToLatLon };
 }
 
 function bilinear(grid, depthSet, distSet, dist, depth) {
@@ -116,7 +122,7 @@ export default function SectionChart({ sectionData, loading, error }) {
     let { section } = sectionData;
     section = section.filter((p) => p.oxygen != null && !isNaN(p.oxygen));
     if (!section.length) return;
-    const { grid, distSet, depthSet } = buildGrid(section);
+    const { grid, distSet, depthSet, distToLatLon } = buildGrid(section);
     const oxygens = section.map((p) => p.oxygen);
     let minO2 = Math.min(...oxygens);
     let maxO2 = Math.max(...oxygens);
@@ -134,13 +140,13 @@ export default function SectionChart({ sectionData, loading, error }) {
     const left = 72;
     const right = COLORBAR_GAP + COLORBAR_W + 36 + RIGHT_PAD;
     const top = 20;
-    const bottom = 48;
+    const bottom = 60;
     const pw = W - left - right;
     const ph = H - top - bottom;
     if (pw <= 0 || ph <= 0) return;
 
     // Store layout for mouse handler
-    layoutRef.current = { left, right, top, bottom, pw, ph, maxDist, maxDepth, grid, distSet, depthSet, minO2, o2Range };
+    layoutRef.current = { left, right, top, bottom, pw, ph, maxDist, maxDepth, grid, distSet, depthSet, minO2, o2Range, distToLatLon };
 
     const xf = (d) => left + (d / maxDist) * pw;
     const yf = (dep) => top + (dep / maxDepth) * ph;
@@ -314,12 +320,19 @@ export default function SectionChart({ sectionData, loading, error }) {
     ctx.font = '9px sans-serif';
     ctx.fillText('mmol/m³', lblX, cbY + cbH / 2 + 18);
 
+    // --- Chinese footer ---
+    const footerY = top + ph + 54;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('热力图由相邻点之间的DO剖面热力图拼接而成', left + pw / 2, footerY);
+
     // --- hover tooltip ---
     if (hover) {
-      const boxH = 56;
-      const boxW = 152;
+      const boxH = 72;
+      const boxW = 200;
       const tx = Math.min(hover.x + 14, W - boxW - 4);
-      const ty = Math.max(Math.min(hover.y - 30, H - boxH - 4), 4);
+      const ty = Math.max(Math.min(hover.y - 36, H - boxH - 4), 4);
       ctx.fillStyle = 'rgba(15,23,42,0.94)';
       ctx.strokeStyle = 'rgba(56,189,248,0.4)';
       ctx.lineWidth = 1;
@@ -330,10 +343,10 @@ export default function SectionChart({ sectionData, loading, error }) {
       ctx.fillStyle = '#e2e8f0';
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`Dist  ${hover.dist.toFixed(1)} km`, tx, ty + 12);
-      ctx.fillText(`Depth ${hover.depth.toFixed(0)} m`, tx, ty + 28);
+      ctx.fillText(`Lat  ${hover.lat.toFixed(4)}°  Lon  ${hover.lon.toFixed(4)}°`, tx, ty + 14);
+      ctx.fillText(`Depth ${hover.depth.toFixed(0)} m`, tx, ty + 32);
       ctx.fillStyle = '#38bdf8';
-      ctx.fillText(`DO    ${hover.o2.toFixed(1)} mmol/m³`, tx, ty + 44);
+      ctx.fillText(`DO    ${hover.o2.toFixed(1)} mmol/m³`, tx, ty + 50);
     }
   }, [sectionData, loading, error, resizeKey, hover]);
 
@@ -351,8 +364,18 @@ export default function SectionChart({ sectionData, loading, error }) {
     const dist = ((mx - L.left) / L.pw) * L.maxDist;
     const depth = ((my - L.top) / L.ph) * L.maxDepth;
     const val = bilinear(L.grid, L.depthSet, L.distSet, dist, depth);
+
+    // Find nearest distance index for lat/lon lookup
+    let bestDist = Infinity;
+    let nearestDist = L.distSet[0];
+    for (const d of L.distSet) {
+      const dd = Math.abs(d - dist);
+      if (dd < bestDist) { bestDist = dd; nearestDist = d; }
+    }
+    const ll = L.distToLatLon?.[nearestDist] || { lat: 0, lon: 0 };
+
     if (!isNaN(val)) {
-      setHover({ x: mx, y: my, dist, depth, o2: val });
+      setHover({ x: mx, y: my, lat: ll.lat, lon: ll.lon, depth, o2: val });
     } else {
       setHover(null);
     }
