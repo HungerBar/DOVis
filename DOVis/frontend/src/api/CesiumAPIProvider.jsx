@@ -11,6 +11,7 @@ export default function CesiumAPIProvider({
 }) {
   const entitiesRef = useRef(new Set());
   const handlerRef = useRef(null);
+  const studyAreaDrawnRef = useRef(false);
 
   const api = useMemo(() => {
     if (!viewer) return null;
@@ -121,6 +122,8 @@ export default function CesiumAPIProvider({
       },
 
       drawStudyArea: () => {
+        if (studyAreaDrawnRef.current) return;
+        studyAreaDrawnRef.current = true;
         Cesium.GeoJsonDataSource.load('/static/study_area.geojson', {
           clampToGround: true,
           stroke: Cesium.Color.fromCssColorString('#c084fc'),
@@ -132,6 +135,7 @@ export default function CesiumAPIProvider({
           }
           viewer.dataSources.add(ds);
         }).catch((e) => {
+          studyAreaDrawnRef.current = false;
           console.error('[GeoJSON load error]', e);
         });
       },
