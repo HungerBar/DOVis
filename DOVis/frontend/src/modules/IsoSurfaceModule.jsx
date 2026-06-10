@@ -60,29 +60,13 @@ export default function IsoSurfaceModule({ hidden }) {
         height: '100%',
       }}
     >
-      <button
-        style={{
-          position: 'absolute',
-          top: 1,
-          right: 1,
-          zIndex: 30,
-          background: 'transparent',
-          border: 'none',
-          color: '#fff',
-          cursor: 'pointer',
-        }}
-        onClick={handleClose}
-      >
-        x
-      </button>
-
       <div
         style={{
           display: 'flex',
           height: '100%',
           width: previewVisible ? '100%' : '320px',
-          background: '#0b1220',
-          color: '#fff',
+          background: 'rgba(38, 37, 35, 0.95)',
+          color: '#F0F0F0',
           overflow: 'hidden',
         }}
       >

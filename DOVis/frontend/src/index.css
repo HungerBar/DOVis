@@ -1,17 +1,452 @@
-html, body, #root {
-  margin: 0;
-  padding: 0;
+:root {
+  color: #F0F0F0;
+  background: #1a1918;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
   height: 100%;
+  margin: 0;
   overflow: hidden;
 }
+
+button,
+input {
+  font: inherit;
+}
+
 button {
-  background: #3b82f6;
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
+  border: 0;
+}
+
+/* ============================================
+   SHELL
+   ============================================ */
+.dovis-shell {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-width: 320px;
+  overflow: hidden;
+  background: #1a1918;
+}
+
+.dovis-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-position: center;
+  background-size: cover;
+  opacity: 0.12;
+  filter: saturate(0.3) brightness(0.6);
+}
+
+.cesium-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cesium-stage canvas {
+  filter: saturate(0.8) contrast(1.02);
+}
+
+.cesium-credit-logoContainer,
+.cesium-viewer-bottom {
+  display: none !important;
+}
+
+/* ============================================
+   SHARED PANEL STYLE
+   ============================================ */
+.mode-switch,
+.connection-pill,
+.api-badge,
+.module-dock,
+.loading-slate {
+  border: 1px solid rgba(218, 217, 215, 0.1);
+  background: rgba(49, 48, 46, 0.92);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   TOP BAR
+   ============================================ */
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  height: 52px;
+  padding: 0 24px;
+  background: rgba(26, 25, 24, 0.96);
+  border-bottom: 1px solid rgba(218, 217, 215, 0.08);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 12px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(218, 217, 215, 0.2);
+  border-radius: 4px;
+  color: #DAD9D7;
+  background: rgba(49, 48, 46, 0.9);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.brand-lockup h1 {
+  margin: 0;
+  color: #F0F0F0;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+
+.brand-lockup p {
+  margin: 3px 0 0;
+  color: rgba(195, 194, 190, 0.5);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ============================================
+   MODE SWITCH
+   ============================================ */
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(68px, 1fr));
+  gap: 1px;
+  width: min(260px, 28vw);
+  padding: 3px;
+  border-radius: 4px;
+}
+
+.mode-switch button {
+  min-width: 0;
+  height: 28px;
+  border-radius: 3px;
+  color: rgba(195, 194, 190, 0.55);
+  background: transparent;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mode-switch button:hover {
+  color: rgba(218, 217, 215, 0.8);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mode-switch button.active {
+  color: #F0F0F0;
+  background: rgba(218, 217, 215, 0.1);
+  border: 1px solid rgba(218, 217, 215, 0.18);
+}
+
+/* ============================================
+   CONNECTION PILL / API BADGE
+   ============================================ */
+.connection-pill,
+.api-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  border-radius: 4px;
+  color: rgba(195, 194, 190, 0.6);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.connection-pill {
+  justify-content: center;
+  padding: 0 11px;
+  white-space: nowrap;
+}
+
+/* ============================================
+   MODULE DOCK
+   ============================================ */
+.module-dock {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 4px;
+}
+
+.module-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(218, 217, 215, 0.1);
+  border-radius: 3px;
+  color: rgba(218, 217, 215, 0.7);
+  background: rgba(49, 48, 46, 0.8);
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.module-button:hover {
+  color: #F0F0F0;
+  border-color: rgba(218, 217, 215, 0.25);
+  background: rgba(60, 58, 56, 0.9);
+}
+
+.module-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  color: rgba(218, 217, 215, 0.6);
+}
+
+/* ============================================
+   LOADING
+   ============================================ */
+.loading-slate {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 4px;
+  color: rgba(195, 194, 190, 0.7);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  transform: translate(-50%, -50%);
+}
+
+/* ============================================
+   API BADGE
+   ============================================ */
+.api-badge {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  z-index: 8;
+  min-height: 28px;
+  padding: 0 9px;
+  font-size: 10px;
+}
+
+/* ============================================
+   ANALYSIS PANEL (inside floating windows)
+   ============================================ */
+.analysis-panel {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  color: #F0F0F0;
+}
+
+.analysis-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(218, 217, 215, 0.1);
+}
+
+.analysis-heading span {
+  color: rgba(218, 217, 215, 0.75);
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.analysis-heading strong {
+  max-width: 58%;
+  color: #F0F0F0;
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: right;
+}
+
+.control-band {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(218, 217, 215, 0.1);
+  border-radius: 4px;
+  background: rgba(49, 48, 46, 0.6);
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+}
+
+.control-row span {
+  color: rgba(195, 194, 190, 0.6);
+  font-size: 12px;
+}
+
+.control-row strong {
+  color: #DAD9D7;
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.control-band input {
+  width: 100%;
+  accent-color: rgba(218, 217, 215, 0.7);
+}
+
+.control-band p {
+  min-height: 18px;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: rgba(195, 194, 190, 0.45);
+  font-size: 11px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.primary-action,
+.quiet-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
-button:hover {
-  background: #2563eb;
+
+.primary-action {
+  color: #1a1918;
+  background: rgba(218, 217, 215, 0.88);
+  border: none;
+  transition: background 0.2s;
+}
+
+.primary-action:hover {
+  background: rgba(240, 240, 240, 0.95);
+}
+
+.primary-action:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.quiet-action {
+  border: 1px solid rgba(218, 217, 215, 0.15);
+  color: rgba(218, 217, 215, 0.75);
+  background: rgba(49, 48, 46, 0.7);
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.quiet-action:hover {
+  border-color: rgba(218, 217, 215, 0.3);
+  color: #F0F0F0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1080px) {
+  .topbar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .connection-pill {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    padding: 0 14px;
+    grid-template-columns: 1fr;
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 8px;
+  }
+
+  .brand-lockup p,
+  .api-badge {
+    display: none;
+  }
+
+  .mode-switch {
+    width: 100%;
+  }
+
+  .module-dock {
+    overflow-x: auto;
+  }
+
+  .module-button {
+    min-width: 0;
+  }
 }

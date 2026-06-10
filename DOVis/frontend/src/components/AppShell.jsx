@@ -1,96 +1,101 @@
-import { useState } from 'react';
-
-import CesiumViewer from './CesiumViewer';
-import ModuleLauncher from './ModuleLauncher';
-
-import { moduleConfig } from '../config/module';
-
-import { useWindowManager } from '../hooks/useWindowManager';
-import { FloatingWindowLayer } from './FloatingWindowLayer';
+import { useMemo, useState } from 'react';
+import {
+  AimOutlined,
+  ApiOutlined,
+  BorderOuterOutlined,
+  CloudSyncOutlined,
+  DeploymentUnitOutlined,
+  ExperimentOutlined,
+  LineChartOutlined,
+  FundOutlined,
+} from '@ant-design/icons';
 
 import CesiumAPIProvider from '../api/CesiumAPIProvider';
+import cinematicOcean from '../assets/cinematic-ocean-oxygen.png';
+import { moduleConfig } from '../config/module';
+import { FloatingWindowLayer } from './FloatingWindowLayer';
+import CesiumViewer from './CesiumViewer';
+import ModuleLauncher from './ModuleLauncher';
+import { useWindowManager } from '../hooks/useWindowManager';
 
 function AppShell() {
-  // ✔ 唯一 Cesium Viewer source
   const [viewer, setViewer] = useState(null);
 
-  // ✔ window manager
-  const {
-    windows,
-    open,
-    hidden,
-    update,
-    focus,
-  } = useWindowManager();
+  const { windows, open, hidden, update, focus, maximize, snapLeft, snapRight } = useWindowManager();
+
+  const openModule = useMemo(() => {
+    return (module) => {
+      open({
+        id: module.id,
+        Component: module.component,
+        props: {
+          ...(module.props || {}),
+          hidden: () => hidden(module.id),
+        },
+        policy: module.policy || {},
+      });
+    };
+  }, [hidden, open]);
 
   return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* ======================================
-          Cesium Background
-      ====================================== */}
+    <div className="dovis-shell">
       <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-        }}
-      >
+        className="dovis-poster"
+        style={{ backgroundImage: `url(${cinematicOcean})` }}
+      />
+
+      <div className="cesium-stage">
         <CesiumViewer
-          onReady={(v) => {
-            console.log('[Cesium] ready');
-
-            setViewer(v);
-          }}
-          onDestroy={() => {
-            console.log('[Cesium] destroyed');
-
-            setViewer(null);
-          }}
+          onReady={(v) => setViewer(v)}
+          onDestroy={() => setViewer(null)}
         />
       </div>
 
-      {/* ======================================
-          Cesium API Layer
-      ====================================== */}
+      <header className="topbar">
+        <div className="brand-lockup">
+          <span className="brand-mark">DO</span>
+          <div>
+            <h1>DOVis</h1>
+            <p>Dissolved Oxygen Visualization</p>
+          </div>
+        </div>
+
+        <ModuleLauncher
+          modules={moduleConfig}
+          onOpen={openModule}
+        />
+
+        <div className="connection-pill">
+          <CloudSyncOutlined />
+          <span>{viewer ? 'Cesium online' : 'Initializing'}</span>
+        </div>
+      </header>
+
+      {!viewer && (
+        <div className="loading-slate">
+          <ExperimentOutlined />
+          <span>Loading ocean scene</span>
+        </div>
+      )}
+
       {viewer && (
         <CesiumAPIProvider viewer={viewer}>
-
-          {/* ======================================
-              Launcher
-          ====================================== */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 10,
-              left: 10,
-              zIndex: 1000,
-            }}
-          >
-            <ModuleLauncher
-              modules={moduleConfig}
-              onOpen={open}
-              hidden={hidden}
-            />
-          </div>
-
-          {/* ======================================
-              Window System
-          ====================================== */}
           <FloatingWindowLayer
             windows={windows}
             onClose={hidden}
             onUpdate={update}
             onFocus={focus}
+            onMaximize={maximize}
+            onSnapLeft={snapLeft}
+            onSnapRight={snapRight}
           />
-
         </CesiumAPIProvider>
       )}
+
+      <div className="api-badge">
+        <ApiOutlined />
+        <span>API 5001</span>
+      </div>
     </div>
   );
 }

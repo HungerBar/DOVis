@@ -1,57 +1,87 @@
 .window {
   position: absolute;
-  background: #0b1220;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  border: 1px solid rgba(218, 217, 215, 0.1);
+  border-radius: 4px;
+  background: rgba(38, 37, 35, 0.97);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 1px rgba(218, 217, 215, 0.08);
 }
 
 .header {
-  height: 36px;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
-  background: #1e293b;
+  height: 32px;
+  padding: 0 0 0 12px;
   cursor: grab;
-  color: #fff;
-  font-size: 12px;
   user-select: none;
+  background: rgba(31, 30, 28, 0.95);
+  border-bottom: 1px solid rgba(218, 217, 215, 0.06);
+}
 
-  position: relative; /* 用于 absolute 居中按钮 */
+.windowTitle {
+  overflow: hidden;
+  color: rgba(218, 217, 215, 0.7);
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  letter-spacing: 0.08em;
+}
+
+.windowControls {
+  display: flex;
+  height: 32px;
+}
+
+.winBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: rgba(195, 194, 190, 0.5);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.winBtn:hover {
+  background: rgba(218, 217, 215, 0.08);
+  color: #F0F0F0;
+}
+
+.winClose:hover {
+  background: rgba(180, 60, 50, 0.75);
+  color: #ffffff;
+}
+
+.content {
+  overflow: auto;
+  background: rgba(38, 37, 35, 0.5);
 }
 
 .resizeHandle {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   cursor: se-resize;
 }
 
-/* ===== 居中 hidden button ===== */
-
-.hiddenBtn {
+.resizeHandle::after {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-
-  padding: 4px 10px;
-  border-radius: 6px;
-
-  border: 1px solid rgba(255,255,255,0.15);
-  background: transparent;
-
-  color: #fff;
-  font-size: 12px;
-  cursor: pointer;
-
-  transition: all 0.15s ease;
-}
-
-.hiddenBtn:hover {
-  border: 1px solid rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.08);
+  right: 4px;
+  bottom: 4px;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid rgba(218, 217, 215, 0.2);
+  border-bottom: 1px solid rgba(218, 217, 215, 0.2);
+  content: "";
 }

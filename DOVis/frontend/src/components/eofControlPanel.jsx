@@ -3,8 +3,8 @@ const styles = {
     width: '320px',
     height: '100%',
     padding: '24px 20px',
-    background: '#111827',
-    color: '#fff',
+    background: 'rgba(38, 37, 35, 0.95)',
+    color: '#F0F0F0',
     display: 'flex',
     flexDirection: 'column',
     gap: '20px',
@@ -12,22 +12,21 @@ const styles = {
   },
   section: { display: 'flex', flexDirection: 'column', gap: '10px' },
   labelRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  label: { fontWeight: 600, fontSize: "13px", color: "#9ca3af" },
+  label: { fontWeight: 600, fontSize: "13px", color: "#C3C2BE" },
   valueBadge: {
-    background: '#1f2937',
+    background: 'rgba(49,48,46,0.8)',
     padding: '2px 8px',
     borderRadius: '4px',
     fontSize: '12px',
-    color: '#38bdf8',
-    border: '1px solid #374151',
+    color: '#DAD9D7',
+    border: '1px solid rgba(218,217,215,0.1)',
     fontFamily: 'monospace'
   },
   sliderContainer: { display: 'flex', alignItems: 'center', gap: '12px' },
-  slider: { flex: 1, accentColor: '#3b82f6', cursor: 'pointer', height: '6px', borderRadius: '3px' },
-  select: { padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', cursor: 'pointer' },
-  button: { padding: '12px', cursor: 'pointer', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', transition: 'background-color 0.2s' },
+  slider: { flex: 1, accentColor: '#DAD9D7', cursor: 'pointer', height: '6px', borderRadius: '3px' },
+  select: { padding: '8px', background: 'rgba(49,48,46,0.8)', border: '1px solid rgba(218,217,215,0.1)', color: '#F0F0F0', borderRadius: '4px', cursor: 'pointer' },
+  button: { padding: '12px', cursor: 'pointer', background: 'rgba(218,217,215,0.88)', color: '#1a1918', border: 'none', borderRadius: '6px', fontWeight: 'bold', transition: 'background-color 0.2s' },
 
-  // 🌟 双滑块专属样式外壳
   dualSliderWrapper: {
     position: 'relative',
     width: '100%',
@@ -55,62 +54,57 @@ export default function EOFControlPanel({
   const sliderMax = isLat ? 30 : 120;
   const sliderStep = 0.25;
 
-  // 🌟 计算双滑块高亮条的左右百分比位置
   const minPct = (timeRange[0] / 479) * 100;
   const maxPct = (timeRange[1] / 479) * 100;
 
   return (
     <div style={styles.panel}>
-      {/* 注入双滑块核心控制穿透样式的局部标签，绝不污染全局 */}
       <style>{`
         .eof-dual-input {
           position: absolute;
           width: 100%;
           background: none;
-          pointer-events: none; /* 🌟 关键：让输入框层穿透，不阻挡彼此 */
+          pointer-events: none;
           -webkit-appearance: none;
           appearance: none;
           margin: 0;
         }
-        /* 针对不同浏览器的拖拽点重新激活鼠标事件 */
         .eof-dual-input::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
           width: 14px;
           height: 14px;
           border-radius: 50%;
-          background: #3b82f6;
-          border: 2px solid #ffffff;
+          background: #DAD9D7;
+          border: 2px solid #1a1918;
           cursor: pointer;
-          pointer-events: auto; /* 🌟 关键：只有纽扣响应鼠标拖拽 */
+          pointer-events: auto;
           transition: transform 0.1s;
         }
         .eof-dual-input::-webkit-slider-thumb:active {
           transform: scale(1.2);
-          background: #38bdf8;
+          background: #F0F0F0;
         }
         .eof-dual-input::-moz-range-thumb {
           width: 14px;
           height: 14px;
           border-radius: 50%;
-          background: #3b82f6;
-          border: 2px solid #ffffff;
+          background: #DAD9D7;
+          border: 2px solid #1a1918;
           cursor: pointer;
           pointer-events: auto;
         }
       `}</style>
 
-      <h3 style={{ margin: '0 0 5px 0', borderBottom: '1px solid #374151', paddingBottom: '10px', fontSize: '16px' }}>EOF 参数配置</h3>
+      <h3 style={{ margin: '0 0 5px 0', borderBottom: '1px solid rgba(218,217,215,0.08)', paddingBottom: '10px', fontSize: '16px', fontFamily: "'Playfair Display', serif" }}>EOF Analysis</h3>
 
-      {/* 数据源选择 */}
       <div style={styles.section}>
-        <label style={styles.label}>分析数据集</label>
+        <label style={styles.label}>Dataset</label>
         <select style={styles.select} value={datasetId} onChange={(e) => setDatasetId(e.target.value)}>
           <option value="do_predict">Indian Ocean Dataset (do_predict)</option>
         </select>
       </div>
 
-      {/* 分析模态选择 */}
       <div style={styles.section}>
         <select style={styles.select} value={modeType} onChange={(e) => setModeType(e.target.value)}>
           <option value="horizontal">Horizontal (水平等深面)</option>
@@ -118,11 +112,10 @@ export default function EOFControlPanel({
         </select>
       </div>
 
-      {/* 水平模式：水深采样层级 */}
       {modeType === "horizontal" && (
         <div style={styles.section}>
           <div style={styles.labelRow}>
-            <label style={styles.label}>水深采样层级 (索引)</label>
+            <label style={styles.label}>Depth Level (index)</label>
             <span style={styles.valueBadge}>Layer {depth}</span>
           </div>
           <div style={styles.sliderContainer}>
@@ -139,23 +132,22 @@ export default function EOFControlPanel({
         </div>
       )}
 
-      {/* 剖面模式专有属性 */}
       {modeType === "section" && (
         <>
           <div style={styles.section}>
-            <label style={styles.label}>剖面切片控制轴</label>
+            <label style={styles.label}>Section Axis</label>
             <select style={styles.select} value={sectionType} onChange={(e) => {
               setSectionType(e.target.value);
               setSectionValue(e.target.value === 'lat' ? 0.0 : 75.0);
             }}>
-              <option value="lat">纬度切面 (固定 Latitude)</option>
-              <option value="lon">经度切面 (固定 Longitude)</option>
+              <option value="lat">Latitude slice</option>
+              <option value="lon">Longitude slice</option>
             </select>
           </div>
 
           <div style={styles.section}>
             <div style={styles.labelRow}>
-              <label style={styles.label}>切面绝对物理位置</label>
+              <label style={styles.label}>Position</label>
               <span style={styles.valueBadge}>
                 {sectionValue.toFixed(2)}°{isLat ? (sectionValue >= 0 ? 'N' : 'S') : 'E'}
               </span>
@@ -175,45 +167,37 @@ export default function EOFControlPanel({
         </>
       )}
 
-      {/* 🌟 核心升级：时间跨度双触点滑块 */}
       <div style={styles.section}>
         <div style={styles.labelRow}>
-          <label style={styles.label}>时间跨度 (月索引序列)</label>
+          <label style={styles.label}>Time Range (month index)</label>
           <span style={styles.valueBadge}>M{timeRange[0]} - M{timeRange[1]}</span>
         </div>
 
         <div style={styles.dualSliderWrapper}>
-          {/* 后方底色暗轨 */}
-          <div style={{ position: 'absolute', left: 0, right: 0, height: '6px', background: '#1f2937', borderRadius: '3px' }} />
-
-          {/* 中间高亮激活轨（动态撑满两触点之间的区域） */}
+          <div style={{ position: 'absolute', left: 0, right: 0, height: '6px', background: 'rgba(49,48,46,0.8)', borderRadius: '3px' }} />
           <div style={{
             position: 'absolute',
             left: `${minPct}%`,
             width: `${maxPct - minPct}%`,
             height: '6px',
-            background: '#3b82f6',
+            background: 'rgba(218,217,215,0.45)',
             borderRadius: '3px'
           }} />
 
-          {/* 左触点滑块：控制起点 */}
           <input
             type="range"
             min={0}
             max={479}
             value={timeRange[0]}
             className="eof-dual-input"
-            // 当左触点值比较大时，稍微提高层级防止遮挡
             style={{ zIndex: timeRange[0] > 240 ? 4 : 3 }}
             onChange={(e) => {
               const val = Number(e.target.value);
-              // 🌟 核心防越界锁：新值绝对不能大于当前的尾部点
               const safeVal = Math.min(val, timeRange[1] - 1);
               setTimeRange([safeVal, timeRange[1]]);
             }}
           />
 
-          {/* 右触点滑块：控制终点 */}
           <input
             type="range"
             min={0}
@@ -223,7 +207,6 @@ export default function EOFControlPanel({
             style={{ zIndex: 3 }}
             onChange={(e) => {
               const val = Number(e.target.value);
-              // 🌟 核心防越界锁：新值绝对不能小于当前的头部点
               const safeVal = Math.max(val, timeRange[0] + 1);
               setTimeRange([timeRange[0], safeVal]);
             }}
@@ -231,29 +214,27 @@ export default function EOFControlPanel({
         </div>
       </div>
 
-      {/* 提取主成分个数 */}
       <div style={styles.section}>
-        <label style={styles.label}>提取主成分特征数 (Mode 数量)</label>
+        <label style={styles.label}>Mode Count</label>
         <select
           style={styles.select}
           value={modeNum}
           onChange={(e) => setModeNum(Number(e.target.value))}
         >
-          <option value={1}>1 个主要模态</option>
-          <option value={2}>2 个主要模态</option>
-          <option value={3}>3 个主要模态</option>
-          <option value={4}>4 个主要模态</option>
-          <option value={5}>5 个主要模态</option>
+          <option value={1}>1 mode</option>
+          <option value={2}>2 modes</option>
+          <option value={3}>3 modes</option>
+          <option value={4}>4 modes</option>
+          <option value={5}>5 modes</option>
         </select>
       </div>
 
-      {/* 触发器 */}
       <button
-        style={{ ...styles.button, backgroundColor: loading ? '#4b5563' : '#2563eb' }}
+        style={{ ...styles.button, background: loading ? 'rgba(49,48,46,0.8)' : 'rgba(218,217,215,0.88)', color: loading ? 'rgba(195,194,190,0.5)' : '#1a1918' }}
         onClick={runEOF}
         disabled={loading}
       >
-        {loading ? "正在解算空间网格矩阵..." : "运行 EOF 算法"}
+        {loading ? "Computing..." : "Run EOF"}
       </button>
 
     </div>

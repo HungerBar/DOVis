@@ -21,16 +21,6 @@ export default function HypoxiaModule({ hidden }) {
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
-      <button
-        style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }}
-        onClick={() => {
-          reset();
-          hidden();
-        }}
-      >
-        x
-      </button>
-
       <HypoxiaControlPanel
         times={times}
         timeIndex={timeIndex}
