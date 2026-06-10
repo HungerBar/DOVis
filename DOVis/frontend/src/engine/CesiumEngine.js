@@ -19,6 +19,7 @@ export default class CesiumEngine {
       navigationHelpButton: false,
       geocoder: false,
       selectionIndicator: false,
+      infoBox: false,
     });
 
     this.viewer.scene.globe.enableLighting = false;
