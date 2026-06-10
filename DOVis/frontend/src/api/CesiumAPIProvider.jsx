@@ -100,6 +100,34 @@ export default function CesiumAPIProvider({
         }
         handlerRef.current = null;
       },
+
+      loadGeoJson: async (url) => {
+        if (!viewer) return;
+        try {
+          const ds = await Cesium.GeoJsonDataSource.load(url, {
+            clampToGround: true,
+            stroke: Cesium.Color.fromCssColorString('#c084fc'),
+            strokeWidth: 3,
+            fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.12),
+          });
+          viewer.dataSources.add(ds);
+        } catch (e) {
+          console.error('[GeoJSON load error]', e);
+        }
+      },
+
+      drawStudyArea: () => {
+        Cesium.GeoJsonDataSource.load('/static/study_area.geojson', {
+          clampToGround: true,
+          stroke: Cesium.Color.fromCssColorString('#c084fc'),
+          strokeWidth: 3,
+          fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.12),
+        }).then((ds) => {
+          viewer.dataSources.add(ds);
+        }).catch((e) => {
+          console.error('[GeoJSON load error]', e);
+        });
+      },
     };
   }, [viewer]);
 

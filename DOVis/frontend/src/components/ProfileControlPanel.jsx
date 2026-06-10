@@ -120,6 +120,7 @@ export default function ProfileControlPanel({
   mode,
   setMode,
   sectionPoints,
+  sectionError,
   fetchSection,
   clearSectionPoints,
 }) {
@@ -195,7 +196,7 @@ export default function ProfileControlPanel({
             </span>
           </div>
           <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
-            Click on the globe to add waypoints
+            请在紫色框内选取研究区点位
           </div>
           {sectionPoints.length >= 2 && (
             <div style={{ fontSize: '0.8rem', color: '#94a3b8', maxHeight: 80, overflowY: 'auto' }}>
@@ -204,6 +205,11 @@ export default function ProfileControlPanel({
                   [{i + 1}] {p.lat.toFixed(2)}°, {p.lon.toFixed(2)}°
                 </div>
               ))}
+            </div>
+          )}
+          {sectionError && (
+            <div style={{ fontSize: '0.8rem', color: '#f87171', fontWeight: 600, textAlign: 'center', padding: '4px 0' }}>
+              {sectionError}
             </div>
           )}
           <div style={styles.buttonGroup}>

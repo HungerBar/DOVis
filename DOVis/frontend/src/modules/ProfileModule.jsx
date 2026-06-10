@@ -19,6 +19,7 @@ export default function ProfileModule({ hidden }) {
 
     sectionPoints,
     sectionData,
+    sectionError,
     fetchSection,
     clearSectionPoints,
 
@@ -89,6 +90,7 @@ export default function ProfileModule({ hidden }) {
             mode={mode}
             setMode={setMode}
             sectionPoints={sectionPoints}
+            sectionError={sectionError}
             fetchSection={fetchSection}
             clearSectionPoints={clearSectionPoints}
           />

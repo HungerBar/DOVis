@@ -33,6 +33,10 @@ app.include_router(profile.router, prefix="/api", tags=["profile"])
 
 app.mount("/tiles", StaticFiles(directory=TILES_DIR, check_dir=True), name="tiles")
 
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR, check_dir=True), name="static")
+
 
 @app.get("/")
 def root():

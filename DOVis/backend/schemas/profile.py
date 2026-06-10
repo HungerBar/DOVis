@@ -37,6 +37,7 @@ class SectionPoint(BaseModel):
 
 
 class SectionResponse(BaseModel):
-    time: str
+    time: str = ""
     unit: str = "mmol/m3"
-    section: list[SectionPoint]
+    section: list[SectionPoint] = []
+    error: str | None = None

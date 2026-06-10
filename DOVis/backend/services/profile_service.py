@@ -82,6 +82,19 @@ def get_section_profile(points: list[dict], time_index: int) -> dict:
     if len(points) < 2:
         return {"time": "", "unit": "mmol/m3", "section": []}
 
+    # Validate points against study area polygon
+    from shapely.geometry import shape, Point as ShpPoint
+    import json, os
+
+    geojson_path = os.path.join(os.path.dirname(__file__), "..", "static", "study_area.geojson")
+    with open(geojson_path, "r") as f:
+        geojson = json.load(f)
+    study_polygon = shape(geojson["features"][0]["geometry"])
+
+    for pt in points:
+        if not study_polygon.contains(ShpPoint(pt["lon"], pt["lat"])):
+            return {"error": "请选择紫色边界内的研究区点位", "section": []}
+
     ds = get_ds()
     ds_t = ds.isel(time=time_index)
 
