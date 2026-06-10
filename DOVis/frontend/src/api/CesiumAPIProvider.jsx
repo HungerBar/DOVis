@@ -12,6 +12,7 @@ export default function CesiumAPIProvider({
   const entitiesRef = useRef(new Set());
   const handlerRef = useRef(null);
   const studyAreaDrawnRef = useRef(false);
+  const studyAreaDsRef = useRef(null);
 
   const api = useMemo(() => {
     if (!viewer) return null;
@@ -109,7 +110,7 @@ export default function CesiumAPIProvider({
             clampToGround: true,
             stroke: Cesium.Color.fromCssColorString('#c084fc'),
             strokeWidth: 3,
-            fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.12),
+            fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.25),
           });
           // Remove auto-generated labels from feature properties
           for (const entity of ds.entities.values) {
@@ -128,16 +129,25 @@ export default function CesiumAPIProvider({
           clampToGround: true,
           stroke: Cesium.Color.fromCssColorString('#c084fc'),
           strokeWidth: 3,
-          fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.12),
+          fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.25),
         }).then((ds) => {
           for (const entity of ds.entities.values) {
             entity.label = undefined;
           }
+          studyAreaDsRef.current = ds;
           viewer.dataSources.add(ds);
         }).catch((e) => {
           studyAreaDrawnRef.current = false;
           console.error('[GeoJSON load error]', e);
         });
+      },
+
+      removeStudyArea: () => {
+        if (studyAreaDsRef.current) {
+          viewer.dataSources.remove(studyAreaDsRef.current);
+          studyAreaDsRef.current = null;
+        }
+        studyAreaDrawnRef.current = false;
       },
     };
   }, [viewer]);

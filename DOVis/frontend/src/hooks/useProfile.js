@@ -148,6 +148,7 @@ export default function useProfile() {
 
   const cleanup = useCallback(() => {
     api.removeAllPoints?.();
+    api.removeStudyArea?.();
     pointEntitiesRef.current = [];
     verticalEntityRef.current = null;
     if (handlerRef.current) {
