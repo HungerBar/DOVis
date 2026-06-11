@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import EOFControlPanel from "../components/eofControlPanel";
 import EOFResultPanel from "../components/eofResultPanel";
 import useEOF from "../hooks/useEOF";
 
-export default function EOFModule({ hidden }) {
+export default function EOFModule({ hidden, registerCleanup }) {
   const eof = useEOF();
+
+  useEffect(() => {
+    registerCleanup?.(() => eof.reset());
+  }, [registerCleanup, eof.reset]);
 
   const handleClose = () => {
     eof.reset(); // 归零数据，配合下方的条件渲染，会立刻触发 EOFResultPanel 卸载销毁

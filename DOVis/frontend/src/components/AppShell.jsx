@@ -21,7 +21,7 @@ import { useWindowManager } from '../hooks/useWindowManager';
 function AppShell() {
   const [viewer, setViewer] = useState(null);
 
-  const { windows, open, hidden, update, focus, maximize, snapLeft, snapRight } = useWindowManager();
+  const { windows, open, hidden, update, focus, maximize, snapLeft, snapRight, registerCleanup } = useWindowManager();
 
   const openModule = useMemo(() => {
     return (module) => {
@@ -31,11 +31,12 @@ function AppShell() {
         props: {
           ...(module.props || {}),
           hidden: () => hidden(module.id),
+          registerCleanup: (fn) => registerCleanup(module.id, fn),
         },
         policy: module.policy || {},
       });
     };
-  }, [hidden, open]);
+  }, [hidden, open, registerCleanup]);
 
   return (
     <div className="dovis-shell">

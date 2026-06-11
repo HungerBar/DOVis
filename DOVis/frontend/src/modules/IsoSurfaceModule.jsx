@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import IsoSurfaceRenderer from '../components/IsoSurfaceRenderer';
 import IsoSurfaceControlPanel from '../components/IsoSurfaceControlPanel';
@@ -6,7 +6,7 @@ import IsoSurfaceControlPanel from '../components/IsoSurfaceControlPanel';
 import useIsoSurface from '../hooks/useIsoSurface';
 import useCesiumTiles from '../hooks/useCesiumTiles';
 
-export default function IsoSurfaceModule({ hidden }) {
+export default function IsoSurfaceModule({ hidden, registerCleanup }) {
   const {
     times,
     timeIndex,
@@ -26,6 +26,10 @@ export default function IsoSurfaceModule({ hidden }) {
     timeIndex,
     isoValue
   );
+
+  useEffect(() => {
+    registerCleanup?.(() => reset({ keepCamera: true }));
+  }, [registerCleanup, reset]);
 
   const [previewVisible, setPreviewVisible] = useState(true);
 

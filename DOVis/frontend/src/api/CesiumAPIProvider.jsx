@@ -74,17 +74,19 @@ export default function CesiumAPIProvider({
         });
       },
 
-      clearTileset: () => {
+      clearTileset: (opts = {}) => {
         rendererRef.current?.destroy?.();
         rendererRef.current = null;
 
         setGlobeVisible(true);
 
-        viewer.camera.flyHome?.(0);
+        if (!opts.keepCamera) {
+          viewer.camera.flyHome?.(0);
+        }
         console.log('[Cesium] Tileset cleared');
       },
 
-      tilesRecover: () => {
+      tilesRecover: (opts = {}) => {
         const renderer = getRenderer();
 
         const recovery = new CesiumTilesRecovery(
@@ -217,7 +219,7 @@ export default function CesiumAPIProvider({
         console.log('[Cesium] GeoJSON cleared');
       },
 
-      geojsonRecover: async () => {
+      geojsonRecover: async (opts = {}) => {
         if (!viewer) return;
 
         try {
@@ -230,7 +232,9 @@ export default function CesiumAPIProvider({
             geoJsonLayer = geoJsonCache;
             viewer.dataSources.add(geoJsonCache);
 
-            await viewer.zoomTo(geoJsonCache);
+            if (!opts.keepCamera) {
+              await viewer.zoomTo(geoJsonCache);
+            }
           }
 
           console.log('[Cesium] GeoJSON recovered');

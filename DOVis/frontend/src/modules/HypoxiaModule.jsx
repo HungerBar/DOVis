@@ -1,9 +1,10 @@
+import { useEffect } from 'react';
 import HypoxiaControlPanel from '../components/HypoxiaControlPanel';
 import useHypoxia from '../hooks/useHypoxia';
 // import useHypoxiaTiles from '../hooks/useHypoxiaTiles';
 import useHypoxiaGeojson from '../hooks/useHypoxiaGeojson';
 
-export default function HypoxiaModule({ hidden }) {
+export default function HypoxiaModule({ hidden, registerCleanup }) {
   const {
     times,
     timeIndex,
@@ -18,6 +19,10 @@ export default function HypoxiaModule({ hidden }) {
 
   // const { load, reset, recover } = useHypoxiaTiles(timeIndex, threshold);
   const { load, reset, recover } = useHypoxiaGeojson(timeIndex, threshold, depthIndex);
+
+  useEffect(() => {
+    registerCleanup?.(() => recover({ keepCamera: true }));
+  }, [registerCleanup, recover]);
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>

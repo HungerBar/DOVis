@@ -38,8 +38,8 @@ export default function useHypoxiaGeojson(
   }, [api]);
 
   // 恢复场景（如果你有这个功能）
-  const recover = useCallback(() => {
-    api?.geojsonRecover?.();
+  const recover = useCallback((opts) => {
+    api?.geojsonRecover?.(opts);
   }, [api]);
 
   return {

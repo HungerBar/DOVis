@@ -27,8 +27,8 @@ export default function useCesiumTiles(
     }
   }, [api, timeIndex, isoValue]);
 
-  const reset = useCallback(() => {
-    api?.clearTileset?.();
+  const reset = useCallback((opts) => {
+    api?.clearTileset?.(opts);
   }, [api]);
 
   const recover = useCallback(() => {

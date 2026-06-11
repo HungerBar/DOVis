@@ -1,9 +1,10 @@
+import { useEffect } from 'react';
 import ProfileControlPanel from '../components/ProfileControlPanel';
 import ProfileChart from '../components/ProfileChart';
 import SectionChart from '../components/SectionChart';
 import useProfile from '../hooks/useProfile';
 
-export default function ProfileModule({ hidden }) {
+export default function ProfileModule({ hidden, registerCleanup }) {
   const {
     times,
     timeIndex,
@@ -25,6 +26,10 @@ export default function ProfileModule({ hidden }) {
     reset,
     cleanup,
   } = useProfile();
+
+  useEffect(() => {
+    registerCleanup?.(() => cleanup());
+  }, [registerCleanup, cleanup]);
 
   const handleClose = () => {
     cleanup();

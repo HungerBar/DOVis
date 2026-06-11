@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { WindowPolicy } from '../config/WindowPolicy';
 
 const TOPBAR_H = 52;
@@ -6,6 +6,7 @@ const TOPBAR_H = 52;
 export function useWindowManager() {
   const zRef = useRef(1000);
   const [windows, setWindows] = useState([]);
+  const cleanupMap = useRef({});
 
   const focus = (id) => {
     zRef.current += 1;
@@ -39,10 +40,15 @@ export function useWindowManager() {
   };
 
   const hidden = (id) => {
+    cleanupMap.current[id]?.();
     setWindows(prev =>
       prev.map(w => w.id === id ? { ...w, visible: false } : w)
     );
   };
+
+  const registerCleanup = useCallback((id, fn) => {
+    cleanupMap.current[id] = fn;
+  }, []);
 
   const maximize = (id) => {
     setWindows(prev =>
@@ -104,5 +110,5 @@ export function useWindowManager() {
     );
   };
 
-  return { windows, open, hidden, update, focus, maximize, snapLeft, snapRight };
+  return { windows, open, hidden, update, focus, maximize, snapLeft, snapRight, registerCleanup };
 }

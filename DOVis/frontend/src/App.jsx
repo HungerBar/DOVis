@@ -1,33 +1,32 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import LandingPage from './components/LandingPage';
-
-const AppShell = lazy(() => import('./components/AppShell'));
+import AppShell from './components/AppShell';
 
 function App() {
   const [phase, setPhase] = useState('landing');
 
-  if (phase === 'landing') {
-    return <LandingPage onEnter={() => setPhase('transitioning')} />;
-  }
+  return (
+    <>
+      {phase === 'landing' && (
+        <LandingPage onEnter={() => setPhase('transitioning')} />
+      )}
 
-  if (phase === 'transitioning') {
-    return (
-      <>
+      {phase === 'transitioning' && (
         <div
           className="transition-overlay"
           onAnimationEnd={() => setPhase('app')}
         />
-        <Suspense fallback={null}>
-          <AppShell />
-        </Suspense>
-      </>
-    );
-  }
+      )}
 
-  return (
-    <Suspense fallback={null}>
-      <AppShell />
-    </Suspense>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        visibility: phase === 'app' ? 'visible' : 'hidden',
+        zIndex: phase === 'app' ? 0 : -1,
+      }}>
+        <AppShell />
+      </div>
+    </>
   );
 }
 

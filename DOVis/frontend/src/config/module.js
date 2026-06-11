@@ -30,8 +30,10 @@ export const moduleConfig = [
     component: EOFModule,
     props: {},
     policy: {
-      x: typeof window !== 'undefined' ? window.innerWidth - 700 : 740,
+      x: typeof window !== 'undefined' ? window.innerWidth - 960 : 480,
       y: 52,
+      width: 960,
+      height: 600,
     },
   },
   {
@@ -40,8 +42,10 @@ export const moduleConfig = [
     component: HypoxiaModule,
     props: {},
     policy: {
-      x: typeof window !== 'undefined' ? window.innerWidth - 700 : 740,
+      x: typeof window !== 'undefined' ? window.innerWidth - 340 : 740,
       y: 52,
+      width: 340,
+      height: 620,
     },
   },
 ];
