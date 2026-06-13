@@ -1,7 +1,4 @@
-# WebGIS
-
-
-## DOVis
+# DOVis
 
 DOVis contains a FastAPI backend and a Vite/React frontend. From the repository
 root, use the DOVis package scripts to install and run both services.
