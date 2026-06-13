@@ -113,6 +113,8 @@ const styles = {
   }),
 };
 
+const base = new Date("1980-01-01T00:00:00");
+
 export default function ProfileControlPanel({
   times,
   timeIndex,
@@ -142,7 +144,12 @@ export default function ProfileControlPanel({
           style={styles.slider}
         />
         <div style={styles.timeText}>
-          {times?.[timeIndex] || 'Loading...'}
+          {times?.[timeIndex] != null
+            ? new Date(
+                base.getTime() +
+                times[timeIndex] * 24 * 3600 * 1000
+              ).toLocaleDateString()
+            : "Loading..."}
         </div>
       </div>
 
