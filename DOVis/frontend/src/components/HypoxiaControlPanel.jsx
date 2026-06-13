@@ -126,7 +126,7 @@ const HypoxiaControlPanel = ({
       <div style={styles.section}>
         <div style={styles.labelRow}>
           <span>Hypoxia Threshold</span>
-          <span style={styles.valueText}>{threshold.toFixed(1)} mg/L</span>
+          <span style={styles.valueText}>{threshold.toFixed(1)} µmol/kg</span>
         </div>
         <input
           type="range"
@@ -137,7 +137,7 @@ const HypoxiaControlPanel = ({
           onChange={(e) => setThreshold(Number(e.target.value))}
           style={styles.slider}
         />
-        <div style={styles.timeText}>Range: 0 - 500</div>
+        <div style={styles.timeText}>Range: 0 - 500 µmol/kg</div>
       </div>
 
       <div style={styles.section}>
