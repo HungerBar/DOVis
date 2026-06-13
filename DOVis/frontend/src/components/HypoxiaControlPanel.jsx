@@ -195,12 +195,12 @@ const HypoxiaControlPanel = ({
           >
             End Render Mode
           </button>
-          <button
+          {/* <button
             style={styles.secondaryButton}
             onClick={onExportNc}
           >
             Export Boundary NC
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
