@@ -90,8 +90,8 @@ export default function IsoSurfaceModule({ hidden, registerCleanup }) {
             onRenderCesium={handleRenderCesium}
             endRenderCesium={handleEndRenderCesium}
             onExportNc={handleExportNc}
-            previewVisible={previewVisible}
-            onTogglePreview={togglePreview}
+            // previewVisible={previewVisible}
+            // onTogglePreview={togglePreview}
           />
         </div>
 

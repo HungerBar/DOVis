@@ -127,8 +127,8 @@ const IsoSurfaceControlPanel = ({
   endRenderCesium,
   onExportNc,
 
-  previewVisible,
-  onTogglePreview,
+  // previewVisible,
+  // onTogglePreview,
 }) => {
   return (
     <div className="iso-control-panel" style={styles.panel}>
@@ -183,6 +183,7 @@ const IsoSurfaceControlPanel = ({
       </div>
 
       {/* 预览控制 */}
+      {/* 
       <div style={styles.section}>
         <div style={styles.labelRow}>
           <span>Preview</span>
@@ -198,6 +199,7 @@ const IsoSurfaceControlPanel = ({
           {previewVisible ? 'Hide Preview Renderer' : 'Show Preview Renderer'}
         </button>
       </div>
+      */}
 
       {/* 核心功能区 */}
       <div style={styles.section}>
