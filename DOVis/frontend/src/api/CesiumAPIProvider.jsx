@@ -14,6 +14,8 @@ export default function CesiumAPIProvider({
   const rendererRef = useRef(null);
   const entitiesRef = useRef(new Set());
   const handlerRef = useRef(null);
+  const studyAreaDrawnRef = useRef(false);
+  const studyAreaDsRef = useRef(null);
 
   const api = useMemo(() => {
     if (!viewer) return null;
@@ -23,6 +25,8 @@ export default function CesiumAPIProvider({
       rendererRef,
       entitiesRef,
       handlerRef,
+      studyAreaDrawnRef,
+      studyAreaDsRef,
     });
   }, [viewer]);
 

@@ -10,10 +10,16 @@ export function createCesiumApi({
   rendererRef,
   entitiesRef,
   handlerRef,
+  studyAreaDrawnRef,
+  studyAreaDsRef,
 }) {
   const clickApi = createClickApi(viewer, handlerRef);
   const pointApi = createPointApi(viewer, entitiesRef);
-  const geoJsonApi = createGeoJsonApi(viewer);
+  const geoJsonApi = createGeoJsonApi(
+    viewer,
+    studyAreaDrawnRef,
+    studyAreaDsRef
+  );
 
   return {
     ...createTilesApi(viewer, rendererRef),
@@ -31,6 +37,7 @@ export function createCesiumApi({
       rendererRef.current = null;
 
       geoJsonApi.cleanupGeoJson();
+      geoJsonApi.removeStudyArea();
 
       setGlobeVisible(viewer, true);
 

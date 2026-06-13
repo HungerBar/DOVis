@@ -3,7 +3,24 @@ import * as Cesium from 'cesium';
 let geoJsonLayer = null;
 let geoJsonCache = null;
 
-export function createGeoJsonApi(viewer) {
+const GEOJSON_STYLE = {
+  clampToGround: true,
+  stroke: Cesium.Color.fromCssColorString('#c084fc'),
+  strokeWidth: 3,
+  fill: Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.25),
+};
+
+function removeEntityLabels(dataSource) {
+  for (const entity of dataSource.entities.values) {
+    entity.label = undefined;
+  }
+}
+
+export function createGeoJsonApi(
+  viewer,
+  studyAreaDrawnRef,
+  studyAreaDsRef
+) {
   return {
     loadGeoJson: async (url) => {
       if (!viewer) return;
@@ -14,9 +31,12 @@ export function createGeoJsonApi(viewer) {
           geoJsonLayer = null;
         }
 
-        const ds = await Cesium.GeoJsonDataSource.load(url, {
-          clampToGround: true,
-        });
+        const ds = await Cesium.GeoJsonDataSource.load(
+          url,
+          GEOJSON_STYLE
+        );
+
+        removeEntityLabels(ds);
 
         geoJsonLayer = ds;
         geoJsonCache = ds;
@@ -70,6 +90,34 @@ export function createGeoJsonApi(viewer) {
       } catch (e) {
         console.error('[GeoJSON recover error]', e);
       }
+    },
+
+    drawStudyArea: () => {
+      if (!viewer || studyAreaDrawnRef.current) return;
+
+      studyAreaDrawnRef.current = true;
+
+      Cesium.GeoJsonDataSource.load(
+        '/static/study_area.geojson',
+        GEOJSON_STYLE
+      ).then((ds) => {
+        removeEntityLabels(ds);
+
+        studyAreaDsRef.current = ds;
+        viewer.dataSources.add(ds);
+      }).catch((e) => {
+        studyAreaDrawnRef.current = false;
+        console.error('[GeoJSON load error]', e);
+      });
+    },
+
+    removeStudyArea: () => {
+      if (studyAreaDsRef.current) {
+        viewer.dataSources.remove(studyAreaDsRef.current);
+        studyAreaDsRef.current = null;
+      }
+
+      studyAreaDrawnRef.current = false;
     },
 
     cleanupGeoJson: () => {
