@@ -89,6 +89,8 @@ const styles = {
   },
 };
 
+const base = new Date("1980-01-01T00:00:00");
+const depths = [5.0, 15.1, 25.2, 35.4, 45.6, 55.9, 66.3, 76.8, 87.6, 98.6, 110.1, 122.1, 134.9, 148.7, 164.1, 181.3, 201.3, 224.8, 253.1, 287.6, 330.0, 382.4, 446.7, 525.0, 618.7, 728.7, 855.0, 996.7, 1152.4, 1320.0, 1497.6, 1683.1, 1874.8, 2071.3, 2271.3, 2474.0, 2678.8, 2884.9, 3092.1, 3300.1, 3508.6, 3717.6, 3926.8, 4136.3, 4345.9, 4555.6, 4765.4, 4975.2, 5185.1, 5395.0];
 const HypoxiaControlPanel = ({
   times,
   timeIndex,
@@ -120,7 +122,21 @@ const HypoxiaControlPanel = ({
           onChange={(e) => setTimeIndex(Number(e.target.value))}
           style={styles.slider}
         />
-        <div style={styles.timeText}>{times?.[timeIndex] ?? 'Loading...'}</div>
+        {/* <div style={styles.timeText}>{times?.[timeIndex] ?? 'Loading...'}</div> */}
+        {/* <div style={styles.timeText}>
+          {timeObj?.iso
+            ? timeObj.iso
+            : times?.[timeIndex] ?? 'Loading...'}
+        </div> */}
+
+        <div style={styles.timeText}>
+          {times?.[timeIndex] != null
+            ? new Date(
+                base.getTime() +
+                times[timeIndex] * 24 * 3600 * 1000
+              ).toLocaleDateString()
+            : "Loading..."}
+        </div>
       </div>
 
       <div style={styles.section}>
@@ -154,7 +170,11 @@ const HypoxiaControlPanel = ({
           onChange={(e) => setDepthIndex(Number(e.target.value))}
           style={styles.slider}
         />
-        <div style={styles.timeText}>Depth Index (0 = surface)</div>
+        <div style={styles.timeText}>
+          Depth: {depths?.[depthIndex] != null
+            ? `${depths[depthIndex].toFixed(1)} m`
+            : "Loading..."}
+        </div>
       </div>
 
       <div style={styles.section}>
