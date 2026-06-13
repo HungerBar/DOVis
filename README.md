@@ -3,7 +3,7 @@
 DOVis contains a FastAPI backend and a Vite/React frontend. From the repository
 root, use the DOVis package scripts to install and run both services.
 
-Data files:
+## Data files
 
 ```text
 DOVis/data/do_predict.nc
@@ -13,7 +13,7 @@ The backend currently reads the default NetCDF dataset from
 `DOVis/data/do_predict.nc`. If you replace the dataset, keep the filename
 `do_predict.nc`, or update the dataset path in `DOVis/backend/core/dataset.py`.
 
-First-time setup:
+### First-time setup:
 
 ```bash
 cd DOVis
@@ -25,7 +25,7 @@ source .venv/bin/activate
 pnpm run setup
 ```
 
-Daily development:
+### Daily development
 
 ```bash
 cd DOVis
