@@ -12,10 +12,11 @@ class DepthOxygen(BaseModel):
 
 
 class VerticalProfileResponse(BaseModel):
-    location: Location
-    time: str
+    location: Location | None = None
+    time: str = ""
     unit: str = "mmol/m3"
-    profile: list[DepthOxygen]
+    profile: list[DepthOxygen] = []
+    error: str | None = None
 
 
 class PointInput(BaseModel):
@@ -37,6 +38,7 @@ class SectionPoint(BaseModel):
 
 
 class SectionResponse(BaseModel):
-    time: str
+    time: str = ""
     unit: str = "mmol/m3"
-    section: list[SectionPoint]
+    section: list[SectionPoint] = []
+    error: str | None = None

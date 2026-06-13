@@ -40,6 +40,20 @@ def _find_nearest_ocean(lat_arr, lon_arr, o2, lat, lon, max_radius=5):
 
 
 def get_vertical_profile(lat: float, lon: float, time_index: int) -> dict:
+    # Validate point against study area polygon
+    from shapely.geometry import shape, Point as ShpPoint
+    import json, os
+
+    geojson_path = os.path.join(
+        os.path.dirname(__file__), "..", "static", "study_area.geojson"
+    )
+    with open(geojson_path, "r") as f:
+        geojson = json.load(f)
+    study_polygon = shape(geojson["features"][0]["geometry"])
+
+    if not study_polygon.contains(ShpPoint(lon, lat)):
+        return {"error": "选择在紫色范围内的点"}
+
     ds = get_ds()
     ds_t = ds.isel(time=time_index)
 
@@ -79,6 +93,21 @@ def _haversine_km(lat1, lon1, lat2, lon2):
 def get_section_profile(points: list[dict], time_index: int) -> dict:
     if len(points) < 2:
         return {"time": "", "unit": "mmol/m3", "section": []}
+
+    # Validate points against study area polygon
+    from shapely.geometry import shape, Point as ShpPoint
+    import json, os
+
+    geojson_path = os.path.join(
+        os.path.dirname(__file__), "..", "static", "study_area.geojson"
+    )
+    with open(geojson_path, "r") as f:
+        geojson = json.load(f)
+    study_polygon = shape(geojson["features"][0]["geometry"])
+
+    for pt in points:
+        if not study_polygon.contains(ShpPoint(pt["lon"], pt["lat"])):
+            return {"error": "选择在紫色范围内的点", "section": []}
 
     ds = get_ds()
     ds_t = ds.isel(time=time_index)

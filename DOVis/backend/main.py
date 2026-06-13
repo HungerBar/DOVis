@@ -63,6 +63,9 @@ app.include_router(hypoxia.router, prefix="/api/hypoxia", tags=["Hypoxia"])
 # =========================================================
 app.mount("/tiles", StaticFiles(directory=TILES_DIR, check_dir=True), name="tiles")
 
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR, check_dir=True), name="static")
 
 # =========================================================
 # Root
