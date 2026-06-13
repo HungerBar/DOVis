@@ -33,8 +33,8 @@ export default function useHypoxiaGeojson(
   }, [api, timeIndex, threshold, depthIndex]);
 
   // 清除GeoJSON
-  const reset = useCallback(() => {
-    api?.clearGeoJson?.();
+  const reset = useCallback((opts) => {
+    api?.clearGeoJson?.(opts);
   }, [api]);
 
   // 恢复场景（如果你有这个功能）

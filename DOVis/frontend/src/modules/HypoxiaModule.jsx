@@ -18,11 +18,11 @@ export default function HypoxiaModule({ hidden, registerCleanup }) {
   } = useHypoxia();
 
   // const { load, reset, recover } = useHypoxiaTiles(timeIndex, threshold);
-  const { load, reset, recover } = useHypoxiaGeojson(timeIndex, threshold, depthIndex);
+  const { load, reset} = useHypoxiaGeojson(timeIndex, threshold, depthIndex);
 
   useEffect(() => {
-    registerCleanup?.(() => recover({ keepCamera: true }));
-  }, [registerCleanup, recover]);
+    registerCleanup?.(() => reset());
+  }, [registerCleanup, reset]);
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
@@ -35,7 +35,7 @@ export default function HypoxiaModule({ hidden, registerCleanup }) {
         depthIndex={depthIndex}
         setDepthIndex={setDepthIndex}
         onRenderCesium={load}
-        endRenderCesium={recover}
+        endRenderCesium={reset}
         onExportNc={handleExportNc}
         loading={loading}
       />

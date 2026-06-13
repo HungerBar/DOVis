@@ -208,12 +208,18 @@ export default function CesiumAPIProvider({
         }
       },
 
-      clearGeoJson: () => {
+      clearGeoJson: (opts = {}) => {
         if (!viewer) return;
 
         if (geoJsonLayer) {
           viewer.dataSources.remove(geoJsonLayer, true);
           geoJsonLayer = null;
+        }
+
+        geoJsonCache = null;
+
+        if (!opts.keepCamera) {
+          viewer.camera.flyHome?.(0);
         }
 
         console.log('[Cesium] GeoJSON cleared');
