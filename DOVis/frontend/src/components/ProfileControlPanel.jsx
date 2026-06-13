@@ -123,6 +123,7 @@ export default function ProfileControlPanel({
   mode,
   setMode,
   sectionPoints,
+  sectionError,
   fetchSection,
   clearSectionPoints,
 }) {
@@ -208,6 +209,11 @@ export default function ProfileControlPanel({
                   [{i + 1}] {p.lat.toFixed(2)}°, {p.lon.toFixed(2)}°
                 </div>
               ))}
+            </div>
+          )}
+          {sectionError && (
+            <div style={{ fontSize: '0.7rem', color: '#f87171', lineHeight: 1.4 }}>
+              {sectionError}
             </div>
           )}
           <div style={styles.buttonGroup}>

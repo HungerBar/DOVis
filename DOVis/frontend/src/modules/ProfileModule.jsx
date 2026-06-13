@@ -4,7 +4,7 @@ import ProfileChart from '../components/ProfileChart';
 import SectionChart from '../components/SectionChart';
 import useProfile from '../hooks/useProfile';
 
-export default function ProfileModule({ hidden, registerCleanup }) {
+export default function ProfileModule({ registerCleanup }) {
   const {
     times,
     timeIndex,
@@ -20,21 +20,16 @@ export default function ProfileModule({ hidden, registerCleanup }) {
 
     sectionPoints,
     sectionData,
+    sectionError,
     fetchSection,
     clearSectionPoints,
 
-    reset,
     cleanup,
   } = useProfile();
 
   useEffect(() => {
     registerCleanup?.(() => cleanup());
   }, [registerCleanup, cleanup]);
-
-  const handleClose = () => {
-    cleanup();
-    hidden();
-  };
 
   return (
     <div
@@ -69,6 +64,7 @@ export default function ProfileModule({ hidden, registerCleanup }) {
             mode={mode}
             setMode={setMode}
             sectionPoints={sectionPoints}
+            sectionError={sectionError}
             fetchSection={fetchSection}
             clearSectionPoints={clearSectionPoints}
           />

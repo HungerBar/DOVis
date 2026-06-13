@@ -15,10 +15,16 @@ export default function useProfile() {
   const [mode, setMode] = useState('vertical'); // 'vertical' | 'section'
   const [sectionPoints, setSectionPoints] = useState([]);
   const [sectionData, setSectionData] = useState(null);
+  const [sectionError, setSectionError] = useState(null);
 
   const handlerRef = useRef(null);
   const pointEntitiesRef = useRef([]);
   const verticalEntityRef = useRef(null);
+
+  // Draw study area boundary on mount
+  useEffect(() => {
+    api?.drawStudyArea?.();
+  }, [api]);
 
   // Fetch times list
   useEffect(() => {
@@ -76,7 +82,12 @@ export default function useProfile() {
         return r.json();
       })
       .then((data) => {
-        setProfileData(data);
+        if (data.error) {
+          setError(data.error);
+          setProfileData(null);
+        } else {
+          setProfileData(data);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -91,6 +102,7 @@ export default function useProfile() {
 
     setLoading(true);
     setError(null);
+    setSectionError(null);
 
     try {
       const res = await fetch('/api/profile/section', {
@@ -105,7 +117,12 @@ export default function useProfile() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
-      setSectionData(data);
+      if (data.error) {
+        setSectionError(data.error);
+        setSectionData(null);
+      } else {
+        setSectionData(data);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -124,12 +141,14 @@ export default function useProfile() {
   const clearSectionPoints = useCallback(() => {
     setSectionPoints([]);
     setSectionData(null);
+    setSectionError(null);
     api.removeAllPoints?.();
     pointEntitiesRef.current = [];
   }, [api]);
 
   const cleanup = useCallback(() => {
     api.removeAllPoints?.();
+    api.removeStudyArea?.();
     pointEntitiesRef.current = [];
     verticalEntityRef.current = null;
     if (handlerRef.current) {
@@ -140,6 +159,7 @@ export default function useProfile() {
     setProfileData(null);
     setSectionPoints([]);
     setSectionData(null);
+    setSectionError(null);
     setError(null);
   }, [api]);
 
@@ -151,6 +171,7 @@ export default function useProfile() {
     setProfileData(null);
     setSectionPoints([]);
     setSectionData(null);
+    setSectionError(null);
     setError(null);
   }, [api]);
 
@@ -169,6 +190,7 @@ export default function useProfile() {
 
     sectionPoints,
     sectionData,
+    sectionError,
     fetchSection,
     clearSectionPoints,
 
