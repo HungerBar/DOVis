@@ -1,4 +1,10 @@
 import * as Cesium from 'cesium';
+/* eslint-disable no-empty */
+import {
+  createEarthFacingOrientation,
+  createFlyDestination,
+} from './cameraOrientation';
+import { safeRemoveTileset } from './tilesetLifecycle';
 
 export default class CesiumTilesRenderer {
   constructor(viewer) {
@@ -8,6 +14,29 @@ export default class CesiumTilesRenderer {
 
     this.requestId = 0;
     this.currentUrl = null;
+  }
+
+  async autoFly(options, id) {
+    console.log('[CesiumTilesRenderer] Auto-flying to Indian Ocean');
+
+    const destination = createFlyDestination({
+      lon: options.flyLon ?? 80.0,
+      lat: options.flyLat ?? -15.0,
+      height: options.flyHeight ?? 16000000.0,
+    });
+
+    await this.viewer.camera.flyTo({
+      destination,
+      orientation: createEarthFacingOrientation(destination),
+      duration: options.flyDuration ?? 1.5,
+    });
+
+    if (id !== this.requestId) {
+      console.log('[CesiumTilesRenderer] Request cancelled during flyTo');
+      return false;
+    }
+
+    return true;
   }
 
   async load(url, options = {}) {
@@ -53,124 +82,9 @@ export default class CesiumTilesRenderer {
       this.currentUrl = url;
 
       if (options.autoZoom) {
-        console.log('[CesiumTilesRenderer] Auto-flying to Indian Ocean');
+        const completed = await this.autoFly(options, id);
 
-        const lon = options.flyLon ?? 80.0;
-        const lat = options.flyLat ?? -15.0;
-        const height = options.flyHeight ?? 16000000.0;
-
-        const destination = Cesium.Cartesian3.fromDegrees(
-          lon,
-          lat,
-          height
-        );
-
-        // =====================================================
-        // 1. direction: camera looks at Earth center
-        // =====================================================
-
-        const direction = Cesium.Cartesian3.normalize(
-          Cesium.Cartesian3.negate(
-            destination,
-            new Cesium.Cartesian3()
-          ),
-          new Cesium.Cartesian3()
-        );
-
-        // =====================================================
-        // 2. local ENU frame at camera position
-        // =====================================================
-        // ENU:
-        //   column 0 = east
-        //   column 1 = north
-        //   column 2 = up
-        // =====================================================
-
-        const enu = Cesium.Transforms.eastNorthUpToFixedFrame(destination);
-
-        const east4 = Cesium.Matrix4.getColumn(
-          enu,
-          0,
-          new Cesium.Cartesian4()
-        );
-
-        const north4 = Cesium.Matrix4.getColumn(
-          enu,
-          1,
-          new Cesium.Cartesian4()
-        );
-
-        const east = new Cesium.Cartesian3(
-          east4.x,
-          east4.y,
-          east4.z
-        );
-
-        const north = new Cesium.Cartesian3(
-          north4.x,
-          north4.y,
-          north4.z
-        );
-
-        // =====================================================
-        // 3. up: project local north onto the plane perpendicular
-        //    to viewing direction.
-        //
-        // This keeps north visually upward and prevents pole flip.
-        // =====================================================
-
-        const dot = Cesium.Cartesian3.dot(north, direction);
-
-        const projected = Cesium.Cartesian3.subtract(
-          north,
-          Cesium.Cartesian3.multiplyByScalar(
-            direction,
-            dot,
-            new Cesium.Cartesian3()
-          ),
-          new Cesium.Cartesian3()
-        );
-
-        let up = Cesium.Cartesian3.normalize(
-          projected,
-          new Cesium.Cartesian3()
-        );
-
-        // 极端情况下 fallback，用 east 构造稳定 up
-        if (
-          !Cesium.defined(up) ||
-          !Number.isFinite(up.x) ||
-          !Number.isFinite(up.y) ||
-          !Number.isFinite(up.z)
-        ) {
-          const right = Cesium.Cartesian3.normalize(
-            east,
-            new Cesium.Cartesian3()
-          );
-
-          up = Cesium.Cartesian3.cross(
-            right,
-            direction,
-            new Cesium.Cartesian3()
-          );
-
-          Cesium.Cartesian3.normalize(
-            up,
-            up
-          );
-        }
-
-        await this.viewer.camera.flyTo({
-          destination,
-          orientation: {
-            direction,
-            up,
-          },
-          duration: options.flyDuration ?? 1.5,
-        });
-
-        if (id !== this.requestId) {
-          console.log('[CesiumTilesRenderer] Request cancelled during flyTo');
+        if (!completed) {
           return null;
         }
       }
@@ -193,23 +107,7 @@ export default class CesiumTilesRenderer {
   }
 
   safeRemove(tileset) {
-    if (!tileset) return;
-
-    try {
-      this.viewer?.camera?.cancelFlight?.();
-    } catch { }
-
-    try {
-      this.viewer?.scene?.primitives?.remove?.(tileset);
-    } catch { }
-
-    requestAnimationFrame(() => {
-      try {
-        if (!tileset.isDestroyed?.()) {
-          tileset.destroy?.();
-        }
-      } catch { }
-    });
+    safeRemoveTileset(this.viewer, tileset);
   }
 
   destroy() {

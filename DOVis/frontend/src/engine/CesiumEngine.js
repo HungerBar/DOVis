@@ -1,26 +1,20 @@
 import * as Cesium from 'cesium';
+import {
+  applyDefaultViewRectangle,
+  configureViewer,
+  DEFAULT_VIEWER_OPTIONS,
+} from './viewerConfig';
 
 export default class CesiumEngine {
   constructor(container) {
-    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
-      20.0,
-      -50.0,
-      155.0,
-      30.0
+    applyDefaultViewRectangle();
+
+    this.viewer = new Cesium.Viewer(
+      container,
+      DEFAULT_VIEWER_OPTIONS
     );
 
-    this.viewer = new Cesium.Viewer(container, {
-      animation: false,
-      timeline: false,
-      baseLayerPicker: false,
-      fullscreenButton: false,
-      homeButton: false,
-      sceneModePicker: true,
-      navigationHelpButton: false,
-      geocoder: false,
-    });
-
-    this.viewer.scene.globe.enableLighting = false;
+    configureViewer(this.viewer);
   }
 
   getViewer() {
