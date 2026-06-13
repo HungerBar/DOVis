@@ -63,6 +63,15 @@ const styles = {
     gap: '8px',
     flexWrap: 'wrap',
   },
+  warning: {
+    padding: '8px 10px',
+    background: 'rgba(127, 29, 29, 0.35)',
+    border: '1px solid rgba(248,113,113,0.35)',
+    borderRadius: '6px',
+    color: '#fecaca',
+    fontSize: '0.8rem',
+    lineHeight: 1.4,
+  },
   primaryButton: {
     flex: 1,
     padding: '12px 14px',
@@ -101,8 +110,8 @@ const HypoxiaControlPanel = ({
   setDepthIndex,
   onRenderCesium,
   endRenderCesium,
-  onExportNc,
   loading,
+  polygonError,
 }) => {
   const maxIndex = Math.max((times?.length || 0) - 1, 0);
   return (
@@ -202,6 +211,11 @@ const HypoxiaControlPanel = ({
             Export Boundary NC
           </button> */}
         </div>
+        {polygonError && (
+          <div style={styles.warning}>
+            {polygonError}
+          </div>
+        )}
       </div>
     </div>
   );

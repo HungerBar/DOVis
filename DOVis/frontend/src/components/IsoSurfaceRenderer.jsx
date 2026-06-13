@@ -515,16 +515,7 @@ const IsoSurfaceRenderer = ({
           borderRadius: 6,
         }}
       >
-        <div>
-          <span style={{ color: '#ff5555' }}>X</span>
-        </div>
-        <div>
-          <span style={{ color: '#55ff55' }}>Y</span>
-        </div>
-        <div>
-          <span style={{ color: '#55aaff' }}>Z</span>
-        </div>
-        <div>Mouse: rotate / zoom / pan</div>
+        <div>Support: rotate / zoom / pan</div>
       </div>
     </div>
   );

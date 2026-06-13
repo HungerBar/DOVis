@@ -4,7 +4,7 @@ import useHypoxia from '../hooks/useHypoxia';
 // import useHypoxiaTiles from '../hooks/useHypoxiaTiles';
 import useHypoxiaGeojson from '../hooks/useHypoxiaGeojson';
 
-export default function HypoxiaModule({ hidden, registerCleanup }) {
+export default function HypoxiaModule({ registerCleanup }) {
   const {
     times,
     timeIndex,
@@ -14,11 +14,15 @@ export default function HypoxiaModule({ hidden, registerCleanup }) {
     depthIndex,
     setDepthIndex,
     loading,
-    handleExportNc,
   } = useHypoxia();
 
   // const { load, reset, recover } = useHypoxiaTiles(timeIndex, threshold);
-  const { load, reset} = useHypoxiaGeojson(timeIndex, threshold, depthIndex);
+  const {
+    load,
+    reset,
+    loading: boundaryLoading,
+    error: boundaryError,
+  } = useHypoxiaGeojson(timeIndex, threshold, depthIndex);
 
   useEffect(() => {
     registerCleanup?.(() => reset());
@@ -36,8 +40,8 @@ export default function HypoxiaModule({ hidden, registerCleanup }) {
         setDepthIndex={setDepthIndex}
         onRenderCesium={load}
         endRenderCesium={reset}
-        onExportNc={handleExportNc}
-        loading={loading}
+        loading={loading || boundaryLoading}
+        polygonError={boundaryError}
       />
     </div>
   );
