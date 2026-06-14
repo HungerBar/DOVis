@@ -43,6 +43,10 @@ salinity, density, currents, and spatial-temporal features to produce a
 four-dimensional dissolved oxygen reconstruction. The reported validation
 performance reached an R² of 0.969 and an RMSE of 12.8 μmol kg⁻¹.
 
+The paper also reports an Indian Ocean oxygen loss of approximately
+−141.5 ± 15.1 Tmol per decade, with expanding hypoxic regions in the Arabian
+Sea, Bay of Bengal, and equatorial Indian Ocean.
+
 ## Data File Location
 
 Place the NetCDF dataset at:
