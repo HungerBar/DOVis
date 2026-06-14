@@ -1,60 +1,188 @@
 # DOVis
 
-DOVis contains a FastAPI backend and a Vite/React frontend. From the repository
-root, use the DOVis package scripts to install and run both services.
+DOVis is an interactive web visualization system for exploring dissolved oxygen
+(DO) variation in the Indian Ocean. It combines a FastAPI scientific-data
+backend with a Vite, React, and Cesium frontend to support 3D ocean-volume
+visualization, vertical-profile inspection, isosurface rendering, EOF analysis,
+and hypoxia-region exploration.
 
-## Data files
+The application is designed around a four-dimensional dissolved oxygen dataset:
+longitude, latitude, depth, and time. The backend reads the NetCDF data with
+`xarray`, prepares API responses and generated 3D tiles, and serves them to the
+frontend for interactive geospatial visualization.
+
+## Features
+
+- 3D dissolved oxygen visualization on a Cesium globe.
+- Dissolved oxygen isosurface generation and export through backend services.
+- Vertical profile queries for inspecting oxygen changes with depth.
+- EOF analysis tools for studying dominant spatial-temporal patterns.
+- Hypoxia visualization for low-oxygen regions.
+- FastAPI endpoints for time, volume, profile, isosurface, EOF, and hypoxia data.
+- Local development workflow that starts both backend and frontend with one
+  package script.
+
+## Data Source
+
+This project uses dissolved oxygen data from the following study:
+
+**Paper:** [Reconstruction of dissolved oxygen in the Indian Ocean from 1980 to
+2019 based on machine learning techniques](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1291232/full)
+
+**Authors:** Sheng Huang, Jian Shao, Yijun Chen, Jin Qi, Sensen Wu, Feng Zhang,
+Xianqiang He, Zhenhong Du
+
+**Journal:** *Frontiers in Marine Science*, Volume 10, 2023
+
+**DOI:** [10.3389/fmars.2023.1291232](https://doi.org/10.3389/fmars.2023.1291232)
+
+The study reconstructs Indian Ocean dissolved oxygen from 1980 to 2019 using
+machine learning methods including Extremely Randomized Trees (ERT) and Random
+Forest (RF). It combines ocean reanalysis variables such as temperature,
+salinity, density, currents, and spatial-temporal features to produce a
+four-dimensional dissolved oxygen reconstruction. The reported validation
+performance reached an R² of 0.969 and an RMSE of 12.8 μmol kg⁻¹.
+
+## Data File Location
+
+Place the NetCDF dataset at:
 
 ```text
 DOVis/data/do_predict.nc
 ```
 
-The backend currently reads the default NetCDF dataset from
-`DOVis/data/do_predict.nc`. If you replace the dataset, keep the filename
-`do_predict.nc`, or update the dataset path in `DOVis/backend/core/dataset.py`.
+The backend default dataset path is defined in:
 
-### First-time setup:
+```text
+DOVis/backend/core/dataset.py
+```
+
+By default, the backend expects the filename to remain `do_predict.nc`. If you
+replace the dataset, either keep the same filename and location, or update the
+dataset path in `DOVis/backend/core/dataset.py`.
+
+Expected layout:
+
+```text
+WebGIS/
+├── README.md
+└── DOVis/
+    ├── data/
+    │   └── do_predict.nc
+    ├── backend/
+    ├── frontend/
+    ├── package.json
+    └── requirements.txt
+```
+
+## Tech Stack
+
+- Backend: FastAPI, Uvicorn, xarray, NumPy, SciPy, pandas, NetCDF4, scikit-image,
+  trimesh, PyVista, VTK
+- Frontend: Vite, React, Cesium
+- Package scripts: pnpm
+
+## First-Time Setup
+
+Run setup from the DOVis package directory:
 
 ```bash
 cd DOVis
+```
 
-# Optional but recommended: create an isolated Python environment first.
+Creating a Python virtual environment is optional, but recommended:
+
+```bash
 python -m venv .venv
 source .venv/bin/activate
+```
 
+Install frontend and backend dependencies:
+
+```bash
 pnpm run setup
 ```
 
-### Daily development
+This runs:
+
+```bash
+pnpm --dir frontend install
+python -m pip install -r requirements.txt
+```
+
+## Run the Application
+
+Start both services:
 
 ```bash
 cd DOVis
 pnpm dev
 ```
 
-`pnpm dev` uses pnpm's native parallel script runner to start:
+`pnpm dev` starts the backend and frontend in parallel:
 
 - Backend API: `http://localhost:5001`
 - Frontend app: `http://localhost:5173`
 
-You can also run each side separately:
+Open the frontend URL in a browser to use DOVis.
+
+## Run Services Separately
+
+Backend only:
 
 ```bash
+cd DOVis
 pnpm run dev:backend
-pnpm run dev:frontend
 ```
 
-For backend hot reload during API development:
+Backend with hot reload:
 
 ```bash
+cd DOVis
 pnpm run dev:backend:reload
 ```
 
-If the backend fails on scientific Python imports, recreate or update the Python
-environment, then reinstall backend dependencies:
+Frontend only:
 
 ```bash
+cd DOVis
+pnpm run dev:frontend
+```
+
+## Build and Lint
+
+Build the frontend:
+
+```bash
+cd DOVis
+pnpm run build
+```
+
+Run frontend linting:
+
+```bash
+cd DOVis
+pnpm run lint
+```
+
+## Troubleshooting
+
+If the backend cannot find the dataset, confirm that the file exists at:
+
+```text
+DOVis/data/do_predict.nc
+```
+
+If scientific Python imports fail, recreate or update the Python environment and
+reinstall backend dependencies:
+
+```bash
+cd DOVis
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
+
+If the frontend cannot connect to the API, confirm that the backend is running on
+`http://localhost:5001` and that the frontend is running on
+`http://localhost:5173`.
