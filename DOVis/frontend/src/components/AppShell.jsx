@@ -21,7 +21,7 @@ import { useWindowManager } from '../hooks/useWindowManager';
 function AppShell() {
   const [viewer, setViewer] = useState(null);
 
-  const { windows, open, hidden, update, focus, maximize, snapLeft, snapRight, registerCleanup } = useWindowManager();
+  const { windows, open, hidden, close, update, focus, maximize, snapLeft, snapRight, registerCleanup } = useWindowManager();
 
   const openModule = useMemo(() => {
     return (module) => {
@@ -83,7 +83,8 @@ function AppShell() {
         <CesiumAPIProvider viewer={viewer}>
           <FloatingWindowLayer
             windows={windows}
-            onClose={hidden}
+            onMinimize={hidden}
+            onClose={close}
             onUpdate={update}
             onFocus={focus}
             onMaximize={maximize}

@@ -150,6 +150,10 @@ Desktop.ini
 # 可选（大文件再开）
 # *.geojson
 
+# Local generated database built from NetCDF
+*.sqlite
+*.sqlite-*
+
 # =========================
 # 地图缓存 / 瓦片
 # =========================

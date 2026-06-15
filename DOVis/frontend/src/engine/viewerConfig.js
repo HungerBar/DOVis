@@ -10,6 +10,8 @@ export const DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
 export const DEFAULT_VIEWER_OPTIONS = {
   animation: false,
   timeline: false,
+  infoBox: false,
+  selectionIndicator: false,
   baseLayerPicker: false,
   fullscreenButton: false,
   homeButton: false,

@@ -14,6 +14,7 @@ function clampToViewport(win) {
 
 export function FloatingWindowLayer({
   windows,
+  onMinimize,
   onClose,
   onUpdate,
   onFocus,
@@ -105,7 +106,7 @@ export function FloatingWindowLayer({
                   <div className="windowControls">
                     <button
                       className="winBtn winMin"
-                      onClick={() => onClose(w.id)}
+                      onClick={() => onMinimize(w.id)}
                       aria-label="Minimize"
                     >
                       &#x2014;

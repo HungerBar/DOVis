@@ -40,10 +40,14 @@ export function useWindowManager() {
   };
 
   const hidden = (id) => {
-    cleanupMap.current[id]?.();
     setWindows(prev =>
       prev.map(w => w.id === id ? { ...w, visible: false } : w)
     );
+  };
+
+  const close = (id) => {
+    cleanupMap.current[id]?.();
+    hidden(id);
   };
 
   const registerCleanup = useCallback((id, fn) => {
@@ -110,5 +114,5 @@ export function useWindowManager() {
     );
   };
 
-  return { windows, open, hidden, update, focus, maximize, snapLeft, snapRight, registerCleanup };
+  return { windows, open, hidden, close, update, focus, maximize, snapLeft, snapRight, registerCleanup };
 }

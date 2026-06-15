@@ -7,9 +7,9 @@ visualization, vertical-profile inspection, isosurface rendering, EOF analysis,
 and hypoxia-region exploration.
 
 The application is designed around a four-dimensional dissolved oxygen dataset:
-longitude, latitude, depth, and time. The backend reads the NetCDF data with
-`xarray`, prepares API responses and generated 3D tiles, and serves them to the
-frontend for interactive geospatial visualization.
+longitude, latitude, depth, and time. The backend builds a local SQLite database
+from the NetCDF source data, reads API data from SQLite, prepares generated 3D
+tiles, and serves them to the frontend for interactive geospatial visualization.
 
 ## Features
 
@@ -55,15 +55,22 @@ Place the NetCDF dataset at:
 DOVis/data/do_predict.nc
 ```
 
-The backend default dataset path is defined in:
+The backend uses this NetCDF file as the source for a generated SQLite database:
 
 ```text
-DOVis/backend/core/dataset.py
+DOVis/data/do_predict.sqlite
 ```
 
-By default, the backend expects the filename to remain `do_predict.nc`. If you
-replace the dataset, either keep the same filename and location, or update the
-dataset path in `DOVis/backend/core/dataset.py`.
+The database path and source dataset path are defined in:
+
+```text
+DOVis/backend/core/database.py
+```
+
+By default, the backend expects the source filename to remain `do_predict.nc`.
+If you replace the dataset, either keep the same filename and location, or
+update the paths in `DOVis/backend/core/database.py`. Generated SQLite files are
+local runtime artifacts and should not be committed.
 
 Expected layout:
 
@@ -72,7 +79,8 @@ WebGIS/
 ├── README.md
 └── DOVis/
     ├── data/
-    │   └── do_predict.nc
+    │   ├── do_predict.nc
+    │   └── do_predict.sqlite  # generated locally
     ├── backend/
     ├── frontend/
     ├── package.json
@@ -116,12 +124,28 @@ python -m pip install -r requirements.txt
 
 ## Run the Application
 
-Start both services:
+You can either prebuild the database before starting the app, or start the app
+directly and let the backend build it on first use.
+
+Recommended for first use, because it shows database import progress:
+
+```bash
+cd DOVis
+python -m backend.core.build_database
+pnpm dev
+```
+
+Direct startup:
 
 ```bash
 cd DOVis
 pnpm dev
 ```
+
+If `DOVis/data/do_predict.sqlite` does not exist or is older than
+`DOVis/data/do_predict.nc`, the backend will rebuild it automatically when data
+is first requested. The first build can take a while because the NetCDF source
+file is large.
 
 `pnpm dev` starts the backend and frontend in parallel:
 
@@ -175,6 +199,13 @@ If the backend cannot find the dataset, confirm that the file exists at:
 
 ```text
 DOVis/data/do_predict.nc
+```
+
+If you want to build or rebuild the SQLite database manually, run:
+
+```bash
+cd DOVis
+python -m backend.core.build_database
 ```
 
 If scientific Python imports fail, recreate or update the Python environment and

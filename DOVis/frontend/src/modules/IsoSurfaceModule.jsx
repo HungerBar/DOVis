@@ -28,7 +28,7 @@ export default function IsoSurfaceModule({ hidden, registerCleanup }) {
   );
 
   useEffect(() => {
-    registerCleanup?.(() => reset({ keepCamera: true }));
+    registerCleanup?.(() => reset());
   }, [registerCleanup, reset]);
 
   const [previewVisible, setPreviewVisible] = useState(true);
