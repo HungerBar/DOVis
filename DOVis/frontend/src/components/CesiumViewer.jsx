@@ -27,7 +27,7 @@ export default function CesiumViewer({
 
       onDestroy?.();
     };
-  }, []);
+  }, [onDestroy, onReady]);
 
   return (
     <div

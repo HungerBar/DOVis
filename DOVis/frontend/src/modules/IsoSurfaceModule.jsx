@@ -6,7 +6,7 @@ import IsoSurfaceControlPanel from '../components/IsoSurfaceControlPanel';
 import useIsoSurface from '../hooks/useIsoSurface';
 import useCesiumTiles from '../hooks/useCesiumTiles';
 
-export default function IsoSurfaceModule({ hidden, registerCleanup }) {
+export default function IsoSurfaceModule({ registerCleanup }) {
   const {
     times,
     timeIndex,
@@ -32,15 +32,6 @@ export default function IsoSurfaceModule({ hidden, registerCleanup }) {
   }, [registerCleanup, reset]);
 
   const [previewVisible, setPreviewVisible] = useState(true);
-
-  const togglePreview = () => {
-    setPreviewVisible((visible) => !visible);
-  };
-
-  const handleClose = () => {
-    reset();
-    hidden();
-  };
 
   const handleRenderCesium = async () => {
     await load();
@@ -90,8 +81,6 @@ export default function IsoSurfaceModule({ hidden, registerCleanup }) {
             onRenderCesium={handleRenderCesium}
             endRenderCesium={handleEndRenderCesium}
             onExportNc={handleExportNc}
-            // previewVisible={previewVisible}
-            // onTogglePreview={togglePreview}
           />
         </div>
 

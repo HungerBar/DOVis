@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useRef } from 'react';
 

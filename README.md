@@ -102,24 +102,31 @@ Run setup from the DOVis package directory:
 cd DOVis
 ```
 
-Creating a Python virtual environment is optional, but recommended:
+Create and activate a Conda environment for the backend:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+conda create -n dovis python=3.11
+conda activate dovis
 ```
 
-Install frontend and backend dependencies:
+Install backend Python dependencies with pip inside the Conda environment:
 
 ```bash
-pnpm run setup
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-This runs:
+Install frontend dependencies:
 
 ```bash
 pnpm --dir frontend install
-python -m pip install -r requirements.txt
+```
+
+If `pnpm` is not available, enable it through Corepack first:
+
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
 ```
 
 ## Run the Application
@@ -131,6 +138,7 @@ Recommended for first use, because it shows database import progress:
 
 ```bash
 cd DOVis
+conda activate dovis
 python -m backend.core.build_database
 pnpm dev
 ```
@@ -139,6 +147,7 @@ Direct startup:
 
 ```bash
 cd DOVis
+conda activate dovis
 pnpm dev
 ```
 
@@ -160,6 +169,7 @@ Backend only:
 
 ```bash
 cd DOVis
+conda activate dovis
 pnpm run dev:backend
 ```
 
@@ -167,6 +177,7 @@ Backend with hot reload:
 
 ```bash
 cd DOVis
+conda activate dovis
 pnpm run dev:backend:reload
 ```
 
@@ -205,16 +216,20 @@ If you want to build or rebuild the SQLite database manually, run:
 
 ```bash
 cd DOVis
+conda activate dovis
 python -m backend.core.build_database
 ```
 
-If scientific Python imports fail, recreate or update the Python environment and
-reinstall backend dependencies:
+If scientific Python imports fail, recreate the Conda environment and reinstall
+backend dependencies with pip:
 
 ```bash
 cd DOVis
-python -m venv .venv
-source .venv/bin/activate
+conda deactivate
+conda remove -n dovis --all
+conda create -n dovis python=3.11
+conda activate dovis
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 

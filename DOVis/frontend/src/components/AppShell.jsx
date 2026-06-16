@@ -1,13 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
-  AimOutlined,
   ApiOutlined,
-  BorderOuterOutlined,
   CloudSyncOutlined,
-  DeploymentUnitOutlined,
   ExperimentOutlined,
-  LineChartOutlined,
-  FundOutlined,
 } from '@ant-design/icons';
 
 import CesiumAPIProvider from '../api/CesiumAPIProvider';
@@ -22,6 +17,14 @@ function AppShell() {
   const [viewer, setViewer] = useState(null);
 
   const { windows, open, hidden, close, update, focus, maximize, snapLeft, snapRight, registerCleanup } = useWindowManager();
+
+  const handleViewerReady = useCallback((v) => {
+    setViewer(v);
+  }, []);
+
+  const handleViewerDestroy = useCallback(() => {
+    setViewer(null);
+  }, []);
 
   const openModule = useMemo(() => {
     return (module) => {
@@ -47,8 +50,8 @@ function AppShell() {
 
       <div className="cesium-stage">
         <CesiumViewer
-          onReady={(v) => setViewer(v)}
-          onDestroy={() => setViewer(null)}
+          onReady={handleViewerReady}
+          onDestroy={handleViewerDestroy}
         />
       </div>
 

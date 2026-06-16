@@ -25,10 +25,6 @@ function interpColor(t) {
   return [r, g, bl];
 }
 
-function colorToString(c) {
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
-
 const LAYERS = [
   [0, 200, 'Mixed Layer'],
   [200, 1000, 'Thermocline / OMZ'],

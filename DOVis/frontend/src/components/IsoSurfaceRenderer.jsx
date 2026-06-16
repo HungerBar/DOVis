@@ -245,7 +245,7 @@ const IsoSurfaceRenderer = ({
       fragmentShader,
       uniforms: {
         volumeTex: { value: null },
-        isoValue: { value: isoValue ?? 1.0 },
+        isoValue: { value: 1.0 },
         stepSize: { value: 0.006 },
         bboxMin: { value: new THREE.Vector3(-0.5, -0.5, -0.5) },
         bboxMax: { value: new THREE.Vector3(0.5, 0.5, 0.5) },
