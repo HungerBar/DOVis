@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useRef,
   useState,
 } from 'react';
 import useCesiumAPI from './useCesiumAPI';
@@ -15,10 +16,12 @@ export default function useHypoxiaGeojson(
   const api = useCesiumAPI();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const requestIdRef = useRef(0);
 
   // 加载GeoJSON
   const load = useCallback(async () => {
     if (!api) return;
+    const requestId = ++requestIdRef.current;
 
     setLoading(true);
     setError(null);
@@ -30,6 +33,8 @@ export default function useHypoxiaGeojson(
 
       const res = await response.json();
 
+      if (requestId !== requestIdRef.current) return;
+
       if (!response.ok || res.status === 'error') {
         throw new Error(
           res.detail || `Boundary request failed: HTTP ${response.status}`
@@ -39,24 +44,32 @@ export default function useHypoxiaGeojson(
       const { boundary_url } = res;
 
       if (!boundary_url) {
-        setError(MISSING_POLYGON_MESSAGE);
+        if (requestId === requestIdRef.current) {
+          setError(MISSING_POLYGON_MESSAGE);
+        }
         console.warn('[Hypoxia] boundary polygon not found');
         return;
       }
 
       await api.loadGeoJson(boundary_url);
 
+      if (requestId !== requestIdRef.current) return;
+
       console.log('[Hypoxia] geojson loaded');
     } catch (e) {
+      if (requestId !== requestIdRef.current) return;
       setError(e.message || 'Hypoxia boundary load failed');
       console.error('[Hypoxia] load error', e);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [api, timeIndex, threshold, depthIndex]);
 
   // 清除GeoJSON
   const reset = useCallback((opts) => {
+    requestIdRef.current++;
     setError(null);
     api?.clearGeoJson?.(opts);
   }, [api]);

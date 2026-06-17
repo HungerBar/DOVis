@@ -126,6 +126,9 @@ const IsoSurfaceControlPanel = ({
   onRenderCesium,
   endRenderCesium,
   onExportNc,
+  renderActive = false,
+  renderLoading = false,
+  renderError = null,
 
   // previewVisible,
   // onTogglePreview,
@@ -209,10 +212,20 @@ const IsoSurfaceControlPanel = ({
 
         <div style={styles.buttonGroup}>
           <button
-            style={styles.primaryButton}
+            style={{
+              ...styles.primaryButton,
+              background: renderActive
+                ? 'rgba(249,115,22,0.88)'
+                : styles.primaryButton.background,
+            }}
             onClick={onRenderCesium}
+            disabled={renderLoading}
           >
-            Render 3D Tiles in Cesium
+            {renderLoading
+              ? 'Rendering...'
+              : renderActive
+                ? 'Render Mode Active'
+                : 'Render 3D Tiles in Cesium'}
           </button>
 
           <button
@@ -229,6 +242,16 @@ const IsoSurfaceControlPanel = ({
             Export NetCDF
           </button>
         </div>
+        {renderActive && (
+          <div style={styles.timeText}>
+            Render Mode is active. Time and threshold changes will update Cesium automatically.
+          </div>
+        )}
+        {renderError && (
+          <div style={{ ...styles.timeText, color: '#fecaca', background: 'rgba(127,29,29,0.35)' }}>
+            {renderError}
+          </div>
+        )}
       </div>
     </div>
   );

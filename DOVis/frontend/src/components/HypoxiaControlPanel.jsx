@@ -1,3 +1,5 @@
+import { depthLevels } from '../config/depthLevels';
+
 const styles = {
   panel: {
     width: '320px',
@@ -99,7 +101,6 @@ const styles = {
 };
 
 const base = new Date("1980-01-01T00:00:00");
-const depths = [5.0, 15.1, 25.2, 35.4, 45.6, 55.9, 66.3, 76.8, 87.6, 98.6, 110.1, 122.1, 134.9, 148.7, 164.1, 181.3, 201.3, 224.8, 253.1, 287.6, 330.0, 382.4, 446.7, 525.0, 618.7, 728.7, 855.0, 996.7, 1152.4, 1320.0, 1497.6, 1683.1, 1874.8, 2071.3, 2271.3, 2474.0, 2678.8, 2884.9, 3092.1, 3300.1, 3508.6, 3717.6, 3926.8, 4136.3, 4345.9, 4555.6, 4765.4, 4975.2, 5185.1, 5395.0];
 const HypoxiaControlPanel = ({
   times,
   timeIndex,
@@ -112,6 +113,7 @@ const HypoxiaControlPanel = ({
   endRenderCesium,
   loading,
   polygonError,
+  renderActive = false,
 }) => {
   const maxIndex = Math.max((times?.length || 0) - 1, 0);
   return (
@@ -180,8 +182,8 @@ const HypoxiaControlPanel = ({
           style={styles.slider}
         />
         <div style={styles.timeText}>
-          Depth: {depths?.[depthIndex] != null
-            ? `${depths[depthIndex].toFixed(1)} m`
+          Depth: {depthLevels?.[depthIndex] != null
+            ? `${depthLevels[depthIndex].toFixed(1)} m`
             : "Loading..."}
         </div>
       </div>
@@ -192,11 +194,20 @@ const HypoxiaControlPanel = ({
         </div>
         <div style={styles.buttonGroup}>
           <button
-            style={styles.primaryButton}
+            style={{
+              ...styles.primaryButton,
+              background: renderActive
+                ? 'rgba(249,115,22,0.88)'
+                : styles.primaryButton.background,
+            }}
             onClick={onRenderCesium}
             disabled={loading}
           >
-            {loading ? 'Rendering...' : 'Render Hypoxia Boundary'}
+            {loading
+              ? 'Rendering...'
+              : renderActive
+                ? 'Render Mode Active'
+                : 'Render Hypoxia Boundary'}
           </button>
           <button
             style={styles.secondaryButton}
@@ -211,6 +222,11 @@ const HypoxiaControlPanel = ({
             Export Boundary NC
           </button> */}
         </div>
+        {renderActive && (
+          <div style={styles.timeText}>
+            Render Mode is active. Time, threshold, and depth changes will update Cesium automatically.
+          </div>
+        )}
         {polygonError && (
           <div style={styles.warning}>
             {polygonError}

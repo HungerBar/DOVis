@@ -6,6 +6,8 @@ const LAYERS = [
   [1000, 99999, 'Deep Water', '#818cf8'],
 ];
 
+const LOADING_COLOR = '#c4b5fd';
+
 export default function ProfileChart({ profileData, loading, error }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -41,7 +43,7 @@ export default function ProfileChart({ profileData, loading, error }) {
     ctx.fillRect(0, 0, W, H);
 
     if (loading || error || !profileData?.profile?.length) {
-      ctx.fillStyle = loading ? '#94a3b8' : error ? '#f87171' : '#64748b';
+      ctx.fillStyle = loading ? LOADING_COLOR : error ? '#f87171' : '#64748b';
       ctx.font = '13px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(

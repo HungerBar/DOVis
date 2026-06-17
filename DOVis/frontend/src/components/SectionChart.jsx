@@ -31,6 +31,8 @@ const LAYERS = [
   [1000, 99999, 'Deep Water'],
 ];
 
+const LOADING_COLOR = '#c4b5fd';
+
 function buildGrid(section) {
   const distSet = [...new Set(section.map((p) => p.distance_km))].sort((a, b) => a - b);
   const depthSet = [...new Set(section.map((p) => p.depth))].sort((a, b) => a - b);
@@ -105,7 +107,7 @@ export default function SectionChart({ sectionData, loading, error }) {
     ctx.fillRect(0, 0, W, H);
 
     if (loading || error || !sectionData?.section?.length) {
-      ctx.fillStyle = loading ? '#94a3b8' : error ? '#f87171' : '#64748b';
+      ctx.fillStyle = loading ? LOADING_COLOR : error ? '#f87171' : '#64748b';
       ctx.font = '13px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(

@@ -22,25 +22,46 @@ export default function IsoSurfaceModule({ registerCleanup }) {
     handleExportNc,
   } = useIsoSurface();
 
-  const { load, reset } = useCesiumTiles(
+  const {
+    load,
+    reset,
+    loading: tilesLoading,
+    error: tilesError,
+  } = useCesiumTiles(
     timeIndex,
     isoValue
   );
 
+  const [previewVisible, setPreviewVisible] = useState(true);
+  const [renderActive, setRenderActive] = useState(false);
+
   useEffect(() => {
-    registerCleanup?.(() => reset());
+    if (!renderActive) return;
+
+    load();
+  }, [renderActive, load]);
+
+  useEffect(() => {
+    registerCleanup?.(() => {
+      setRenderActive(false);
+      reset();
+    });
   }, [registerCleanup, reset]);
 
-  const [previewVisible, setPreviewVisible] = useState(true);
-
   const handleRenderCesium = async () => {
-    await load();
+    if (renderActive) {
+      await load();
+      return;
+    }
+
+    setRenderActive(true);
 
     // 渲染到 Cesium 后自动隐藏右侧预览
     // setPreviewVisible(false);
   };
 
   const handleEndRenderCesium = () => {
+    setRenderActive(false);
     reset();
 
     // 结束 Cesium 渲染后恢复右侧预览
@@ -81,6 +102,9 @@ export default function IsoSurfaceModule({ registerCleanup }) {
             onRenderCesium={handleRenderCesium}
             endRenderCesium={handleEndRenderCesium}
             onExportNc={handleExportNc}
+            renderActive={renderActive}
+            renderLoading={tilesLoading}
+            renderError={tilesError}
           />
         </div>
 

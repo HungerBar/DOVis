@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { WindowPolicy } from '../config/WindowPolicy';
+import { WindowPolicy } from '../config/windowPolicy';
 
 const TOPBAR_H = 52;
 

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import useCesiumAPI from './useCesiumAPI';
 
 export default function useCesiumTiles(
@@ -6,9 +6,14 @@ export default function useCesiumTiles(
   isoValue
 ) {
   const api = useCesiumAPI();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     if (!api) return;
+
+    setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch(
@@ -23,11 +28,15 @@ export default function useCesiumTiles(
 
       console.log('[Cesium] loaded');
     } catch (e) {
+      setError(e.message || 'Tileset load failed');
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, [api, timeIndex, isoValue]);
 
   const reset = useCallback((opts) => {
+    setError(null);
     api?.clearTileset?.(opts);
   }, [api]);
 
@@ -39,5 +48,7 @@ export default function useCesiumTiles(
     load,
     reset,
     recover,
+    loading,
+    error,
   };
 }
