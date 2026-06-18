@@ -336,7 +336,7 @@ def run_marching_cubes_ecef(
         )
 
         print("\nTRIANGLE AREA")
-        print(f"{area:.6f} m²")
+        print(f"{area:.6f} m^2")
 
     # =====================================================
     # 9. metadata
