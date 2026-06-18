@@ -21,8 +21,9 @@ function App() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        visibility: phase === 'app' ? 'visible' : 'hidden',
+        opacity: phase === 'app' ? 1 : 0,
         zIndex: phase === 'app' ? 0 : -1,
+        pointerEvents: phase === 'app' ? 'auto' : 'none',
       }}>
         <AppShell />
       </div>

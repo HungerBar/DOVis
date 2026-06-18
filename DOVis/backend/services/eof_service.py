@@ -13,7 +13,7 @@ def run_eof_service(
 ):
 
     print("\n" + "=" * 50, flush=True)
-    print(f"EOF SERVICE START | dataset={dataset_id}, var={variable}", flush=True)
+    print(f"[EOF] SERVICE START | dataset={dataset_id}, var={variable}", flush=True)
     print("=" * 50 + "\n", flush=True)
 
     # =====================================================
@@ -106,7 +106,7 @@ def run_eof_service(
         else:
             time_labels = [f"Step_{i}" for i in range(T)]
     except Exception as e:
-        print(f"Time axis formatting fallback: {e}", flush=True)
+        print(f"[WARN] Time axis formatting fallback: {e}", flush=True)
         time_labels = [f"Step_{i}" for i in range(T)]
 
     coords["time_labels"] = time_labels
@@ -148,7 +148,7 @@ def run_eof_service(
             }
         )
 
-    print("\nEOF DONE SUCCESSFULLY\n", flush=True)
+    print("\n[OK] EOF DONE SUCCESSFULLY\n", flush=True)
 
     return {
         "dataset_id": dataset_id,

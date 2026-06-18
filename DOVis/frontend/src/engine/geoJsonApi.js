@@ -20,9 +20,9 @@ const GEOJSON_STYLE = {
 
 const HYPOXIA_STYLE = {
   clampToGround: true,
-  stroke: Cesium.Color.fromCssColorString('#ff1f1f'),
-  strokeWidth: 4,
-  fill: Cesium.Color.fromCssColorString('#ff1f1f').withAlpha(0.52),
+  stroke: Cesium.Color.fromCssColorString('#9b5fbf'),
+  strokeWidth: 3,
+  fill: Cesium.Color.fromCssColorString('#7b4a9e').withAlpha(0.52),
 };
 
 const EOF_HIGH_VALUE_STYLE = {

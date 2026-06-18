@@ -143,7 +143,7 @@ def import_netcdf_to_sqlite(
     if tmp_path.exists():
         tmp_path.unlink()
 
-    ds = xr.open_dataset(source_path, decode_times=False)
+    ds = xr.open_dataset(source_path, engine="h5netcdf", decode_times=False)
     try:
         if VARIABLE_NAME not in ds:
             raise KeyError(f"[Database] missing variable: {VARIABLE_NAME}")

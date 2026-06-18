@@ -112,6 +112,6 @@ def export_glb(
         faces=export_faces,
         process=False,
     )
-    mesh.visual.face_colors = [0, 180, 255, 180]
+    mesh.visual.face_colors = [75, 110, 115, 170]
 
     mesh.export(path)

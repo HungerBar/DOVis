@@ -197,8 +197,11 @@ const HypoxiaControlPanel = ({
             style={{
               ...styles.primaryButton,
               background: renderActive
-                ? 'rgba(249,115,22,0.88)'
+                ? 'rgba(180, 90, 20, 0.85)'
                 : styles.primaryButton.background,
+              color: renderActive
+                ? '#f0e6dc'
+                : styles.primaryButton.color,
             }}
             onClick={onRenderCesium}
             disabled={loading}
