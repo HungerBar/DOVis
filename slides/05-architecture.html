@@ -5,21 +5,21 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1920px;height:1080px;overflow:hidden}
 body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:60px 80px}
-.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:16px}
-h1{font-weight:700;font-size:36px;margin-bottom:20px}
-.tree{font-family:"Consolas",monospace;font-size:14.5px;line-height:1.75;color:#888;white-space:pre;overflow:hidden}
+.kicker{font-family:"Consolas",monospace;font-size:15px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:16px}
+h1{font-weight:700;font-size:44px;margin-bottom:20px}
+.tree{font-family:"Consolas",monospace;font-size:18px;line-height:1.75;color:#888;white-space:pre;overflow:hidden}
 .tree .hl{color:#7BA1B7}
 .tree .dim{color:#444}
 .sep{margin:20px 0;overflow:visible}
-.sub-title{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.2em;color:#555;text-transform:uppercase;margin-bottom:14px}
+.sub-title{font-family:"Consolas",monospace;font-size:14px;letter-spacing:.2em;color:#555;text-transform:uppercase;margin-bottom:14px}
 .mod-trees{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:28px}
-.mod-tree{font-family:"Consolas",monospace;font-size:13px;line-height:1.75;color:#777;white-space:pre}
+.mod-tree{font-family:"Consolas",monospace;font-size:15px;line-height:1.75;color:#777;white-space:pre}
 .mod-tree .hl{color:#7BA1B7}
 .mod-tree .name{color:#fff;font-weight:700}
-.flow{margin-top:16px;font-family:"Consolas",monospace;font-size:13px;color:#555;line-height:1.9}
+.flow{margin-top:16px;font-family:"Consolas",monospace;font-size:15px;color:#555;line-height:1.9}
 .flow .hl{color:#7BA1B7}
-.design-box{position:absolute;top:160px;right:200px;width:480px;font-size:17px;color:#aaa;line-height:2;border:none;border-radius:0;padding:0;background:transparent;box-shadow:none}
-.design-box .dt{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.3em;color:#7BA1B7;text-transform:uppercase;margin-bottom:12px;font-weight:700}
+.design-box{position:absolute;top:200px;right:200px;width:480px;font-size:26px;color:#aaa;line-height:2;border:none;border-radius:0;padding:0;background:transparent;box-shadow:none}
+.design-box .dt{font-family:"Consolas",monospace;font-size:19px;letter-spacing:.3em;color:#7BA1B7;text-transform:uppercase;margin-bottom:12px;font-weight:700}
 .design-box .hl{color:#7BA1B7;font-weight:700}
 </style></head><body>
 <div class="kicker">System Architecture · 总体架构</div>
@@ -27,8 +27,8 @@ h1{font-weight:700;font-size:36px;margin-bottom:20px}
 <div class="design-box">
 <div class="dt">设计思路</div>
 Viewer 作为<span class="hl">受保护资源</span>，Context + API 工厂拆为 5 子接口；<br>
-功能模块通过 <span class="hl">module.js</span> 声明式注册，低耦合独立开发；<br>
-后端按路由分发到 core / services / 专用算法包。
+四模块 <span class="hl">module.js</span> 声明式注册，零耦合独立开发；<br>
+窗口管理器托管生命周期，关闭即释放实体。
 </div>
 <div class="tree"><span class="hl">DOVis/</span>
 ├── <span class="hl">frontend/</span>                   <span class="dim">React 19 + Vite + Cesium 1.141</span>
@@ -39,13 +39,12 @@ Viewer 作为<span class="hl">受保护资源</span>，Context + API 工厂拆�
 │   ├── src/hooks/              <span class="dim">useIsoSurface · useProfile · useEOF · useHypoxia …</span>
 │   └── src/config/<span class="hl">module.js</span>    <span class="dim">注册即拓展</span>
 ├── <span class="hl">backend/</span>                    <span class="dim">FastAPI + uvicorn (port 5001)</span>
-│   ├── main.py / api/routers/  <span class="dim">路由入口：isoExport · profile · hypoxia · eof</span>
+│   ├── main.py / api/routers/  <span class="dim">路由入口</span>
 │   ├── core/                   <span class="dim">xarray + SQLite 缓存层</span>
 │   ├── <span class="hl">isoGeometry/</span>            <span class="dim">Marching Cubes (PyVista + ECEF)</span>
-│   ├── isoExport/             <span class="dim">GLB → B3DM → 3DTiles 导出</span>
-│   ├── <span class="hl">services/eof_service.py</span>  <span class="dim">eofs 库求解 + 模态/方差/高值区结果</span>
-│   ├── <span class="hl">services/</span>              <span class="dim">剖面 · 低氧边界 · 等值面业务逻辑</span>
-│   └── <span class="hl">hypoxia/</span>                <span class="dim">rasterio 等值线 → GeoJSON 边界</span>
+│   ├── <span class="hl">isoExport/</span>              <span class="dim">GLB → B3DM → 3DTiles 导出</span>
+│   ├── services/               <span class="dim">剖面 · 低氧边界 · EOF 业务逻辑</span>
+│   └── hypoxia/                <span class="dim">rasterio 等值线 → GeoJSON 边界</span>
 ├── <span class="hl">data/</span>                       <span class="dim">do_predict.nc (ML重建 1980-2019)</span>
 └── <span class="hl">tiles/</span>                      <span class="dim">3DTiles 缓存目录（哈希命名）</span></div>
 <div class="sep"><svg width="100%" height="1" style="display:block;overflow:visible"><line class="sep-line" x1="0" y1="0" x2="100%" y2="0" stroke="#7BA1B7" stroke-width="1" stroke-opacity="0.4"/></svg></div>
@@ -75,7 +74,7 @@ Viewer 作为<span class="hl">受保护资源</span>，Context + API 工厂拆�
 ├── ResultPanel     <span class="dim">Plotly可视化</span>
 └── eofExport.js    <span class="dim">CSV/JSON导出</span></div>
 </div>
-<div class="flow"><span class="hl">连接：</span>前端模块声明能力与窗口策略 → 启动器生成入口并注入公共上下文 → 模块 Hook 通过 fetch 调用 FastAPI → 后端路由分发到 core / services / 专用算法目录 → 结果以 JSON / GeoJSON / 3DTiles 回流，由前端模块自行渲染与释放资源</div>
+<div class="flow"><span class="hl">连接：</span>config/module.js 注册 → ModuleLauncher 加载 → FloatingWindowLayer 托管 → 各模块通过 useCesiumAPI() 获取 Context 操作 Cesium → fetch 调 backend API → 返回 JSON / GeoJSON / 3DTiles</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
 <script>
