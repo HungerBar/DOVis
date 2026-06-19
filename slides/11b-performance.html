@@ -1,0 +1,102 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · 性能优化</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:100px 140px}
+.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:56px}
+h1{font-weight:900;font-size:48px;margin-bottom:56px;letter-spacing:-0.02em}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px}
+.card{border:1px solid #1a1a1a;border-radius:8px;padding:32px}
+.card-title{font-weight:700;font-size:20px;margin-bottom:14px;color:#eee}
+.card-title .hl{color:#7BA1B7}
+.card-body{font-size:18px;color:#777;line-height:1.8}
+.card-code{font-family:"Consolas",monospace;font-size:13px;color:#555;margin-top:14px;background:#0a0a0a;padding:8px 12px;border-radius:4px}
+.flow{margin-top:48px;border-top:1px solid #1a1a1a;padding-top:28px}
+.flow-title{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:20px}
+.flow-row{display:flex;align-items:center;justify-content:center;gap:0;width:100%}
+.flow-item{font-family:"Consolas",monospace;font-size:15px;color:#c0ccd4;cursor:pointer;transition:color .25s,transform .25s;padding:4px 0;white-space:nowrap}
+.flow-item:hover{color:#fff;transform:scale(1.08)}
+.flow-sep{font-family:"Consolas",monospace;font-size:14px;color:#333;margin:0 14px;user-select:none;flex-shrink:0}
+.flow-fork{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.fork-line{display:flex;align-items:center;gap:0;width:100%;justify-content:center}
+.fork-label{font-family:"Consolas",monospace;font-size:13px;margin-right:14px;flex-shrink:0}
+.fork-label.hit{color:#4ecdc4}
+.fork-label.miss{color:#ff6b6b}
+.fork-line .flow-row{width:auto;justify-content:flex-start}
+.flow-detail{margin-top:18px;font-family:"Times New Roman","Noto Serif SC",serif;font-size:14px;color:#c0ccd4;min-height:20px;opacity:0;transition:opacity .3s;text-align:center}
+.flow-detail.show{opacity:1}
+</style></head><body>
+<div class="kicker">Performance · 性能优化</div>
+<h1>缓存策略与异步生命周期</h1>
+<div class="grid">
+<div class="card">
+<div class="card-title"><span class="hl">CesiumTilesRenderer</span> 生命周期</div>
+<div class="card-body">++requestId 递增取消过期异步，回调中比对 id !== requestId 丢弃旧结果；URL 缓存避免重复 fetch；safeRemoveTileset 确保销毁不泄漏。</div>
+<div class="card-code">if (id !== this.requestId) return; // 竞态取消</div>
+</div>
+<div class="card">
+<div class="card-title"><span class="hl">SQLite</span> 缓存层</div>
+<div class="card-body">NetCDF 4D → 按 time_step 切片 → zlib 压缩 → SQLite BLOB；惰性解压单时间步；源文件签名校验自动重建；WAL 模式 + 线程锁防并发冲突。</div>
+<div class="card-code">PRAGMA journal_mode=WAL; -- 并发读取优化</div>
+</div>
+<div class="card">
+<div class="card-title"><span class="hl">Tileset MD5</span> 缓存策略</div>
+<div class="card-body">cache_key = MD5(VERSION + time_index + iso_value)；命中返回 static URL，未命中触发 marching cubes pipeline；CACHE_VERSION 更新自动废弃旧缓存。</div>
+<div class="card-code">tiles/{md5_key}/iso.glb + iso.b3dm + tileset.json</div>
+</div>
+</div>
+<div class="flow">
+<div class="flow-title">缓存命中路径</div>
+<div class="flow-row" id="mainRow"></div>
+<div class="flow-fork">
+<div class="fork-line hit-line"><span class="fork-label hit">HIT →</span><span class="flow-row" id="hitRow"></span></div>
+<div class="fork-line miss-line"><span class="fork-label miss">MISS →</span><span class="flow-row" id="missRow"></span></div>
+</div>
+<div class="flow-detail" id="flowDetail"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  var mainItems=[
+    {text:'前端请求(time, iso)',desc:'前端发送 time_index + iso_value 参数请求后端 FastAPI'},
+    {text:'后端计算 MD5 Key',desc:'MD5(CACHE_VERSION + time_index + iso_value) → 生成唯一缓存键'},
+    {text:'查询缓存目录',desc:'检查 tiles/{md5_key}/ 是否已存在有效的 tileset.json 文件'}
+  ];
+  var hitItems=[
+    {text:'直接返回 static tiles URL',desc:'零计算，直接响应已缓存的 3D Tiles 静态文件路径'}
+  ];
+  var missItems=[
+    {text:'SQLite 解压',desc:'从 SQLite BLOB 惰性解压对应 time_step 的三维标量场数据'},
+    {text:'xarray 切片',desc:'按 time_index 从 4D 数据中切出单时间步 numpy 数组'},
+    {text:'Marching Cubes',desc:'scikit-image 执行 Marching Cubes 算法提取等值面网格'},
+    {text:'写入 GLB/B3DM',desc:'网格 → GLB → B3DM + tileset.json 写入 tiles/ 缓存目录'},
+    {text:'返回新 URL',desc:'生成完成，返回新 tiles URL（后续同参数请求将命中 HIT 路径）'}
+  ];
+  var detail=document.getElementById('flowDetail');
+  function build(container,items){
+    items.forEach(function(it,i){
+      if(i>0){var sep=document.createElement('span');sep.className='flow-sep';sep.textContent='→';container.appendChild(sep);}
+      var el=document.createElement('span');
+      el.className='flow-item';el.textContent=it.text;
+      el.addEventListener('mouseenter',function(){detail.textContent=it.desc;detail.classList.add('show');});
+      el.addEventListener('mouseleave',function(){detail.classList.remove('show');});
+      container.appendChild(el);
+    });
+  }
+  build(document.getElementById('mainRow'),mainItems);
+  build(document.getElementById('hitRow'),hitItems);
+  build(document.getElementById('missRow'),missItems);
+  if(typeof gsap!=='undefined'){
+    gsap.set(['.kicker','h1','.card','.flow'],{autoAlpha:0});
+    var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+    tl.fromTo('.kicker',{autoAlpha:0,x:-20},{autoAlpha:1,x:0,duration:0.5},0)
+      .fromTo('h1',{autoAlpha:0,y:15},{autoAlpha:1,y:0,duration:0.6},0.15)
+      .fromTo('.card',{autoAlpha:0,y:25},{autoAlpha:1,y:0,duration:0.7,stagger:0.15},0.5)
+      .fromTo('.flow',{autoAlpha:0,y:15},{autoAlpha:1,y:0,duration:0.6},1.1);
+  }
+})();
+</script>
+</body></html>

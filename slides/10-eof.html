@@ -1,0 +1,75 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · EOF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:72px 100px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.kicker{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.3em;color:#444;text-transform:uppercase}
+.module-num{font-family:"Consolas",monospace;font-size:12px;color:#7BA1B7}
+h1{font-weight:900;font-size:40px;letter-spacing:-0.02em;margin-bottom:16px}
+.desc{font-size:20px;color:#888;line-height:2.3;max-width:1700px;margin-bottom:20px}
+.desc li{margin-bottom:4px;list-style:none;padding-left:16px;position:relative}
+.desc li::before{content:'·';position:absolute;left:0;color:#7BA1B7}
+.features{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.feat{font-family:"Consolas",monospace;font-size:12px;color:#666;border:1px solid #282828;border-radius:4px;padding:5px 12px}
+.img-wrap{display:flex;justify-content:center;align-items:center}
+.img-wrap img{height:480px;width:auto;max-width:95%;border-radius:6px;border:1px solid #1a1a1a;object-fit:contain}
+.flow{font-family:"Consolas",monospace;font-size:13px;color:#555;margin-top:16px;border-top:1px solid #1a1a1a;padding-top:14px}
+.flow-title{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:14px}
+.flow-row{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+.flow-item{font-family:"Consolas",monospace;font-size:15px;color:#c0ccd4;cursor:pointer;transition:color .25s,transform .25s;padding:4px 0;white-space:nowrap}
+.flow-item:hover{color:#fff;transform:scale(1.08)}
+.flow-sep{font-family:"Consolas",monospace;font-size:14px;color:#333;margin:0 14px;user-select:none;flex-shrink:0}
+.flow-detail{margin-top:12px;font-size:14px;color:#c0ccd4;min-height:20px;opacity:0;transition:opacity .3s;text-align:center}
+.flow-detail.show{opacity:1}
+</style></head><body>
+<div class="top"><div class="kicker">功能设计 · Function</div><div class="module-num">Module 04</div></div>
+<h1>EOF 模态分解</h1>
+<div class="desc"><ul>
+<li>基于 eofs 库进行经验正交函数分解，支持水平切片与经/纬向断面两种分析模式</li>
+<li>可配置深度层、时间窗口(1980–2019)与模态数(1–5)，自动掩膜陆地 NaN 值</li>
+<li>输出模态空间分布图、方差贡献率与主成分时间序列，Plotly 交互展示</li>
+<li>模态高值区生成 GeoJSON 叠加 Cesium 球面，分析结果支持 CSV/JSON 导出</li>
+</ul></div>
+<div class="features"><span class="feat">eofs 库</span><span class="feat">水平/断面模式</span><span class="feat">Plotly 绘图</span><span class="feat">GeoJSON 高值叠加</span><span class="feat">CSV/JSON 导出</span></div>
+<div class="img-wrap"><img src="../assets/img/EOF.png" alt="EOF"></div>
+<div class="flow">
+<div class="flow-title">数据流</div>
+<div class="flow-row" id="flowRow"></div>
+<div class="flow-detail" id="flowDetail"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  var items=[
+    {text:'选择模式',desc:'水平切片（单深度层）或断面（沿经/纬线切割）'},
+    {text:'配置参数',desc:'深度层 index、时间窗口 [t0,t1]、模态数 1–10'},
+    {text:'useEOF Hook',desc:'POST /api/eof/compute 发送配置参数'},
+    {text:'eofs.Eof 求解',desc:'后端 masked array 处理 NaN，Eof solver 计算分解'},
+    {text:'返回模态数据',desc:'空间分布 + 方差贡献率 + PC 时间序列 + 坐标标签'},
+    {text:'Plotly 绘图',desc:'前端 Plotly.js 绘制交互式模态图 + 方差条形图'},
+    {text:'GeoJSON 叠加',desc:'高值区按百分位生成 GeoJSON，叠加到 Cesium 球面'}
+  ];
+  var row=document.getElementById('flowRow');
+  var detail=document.getElementById('flowDetail');
+  items.forEach(function(it,i){
+    if(i>0){var sep=document.createElement('span');sep.className='flow-sep';sep.textContent='→';row.appendChild(sep);}
+    var el=document.createElement('span');el.className='flow-item';el.textContent=it.text;
+    el.addEventListener('mouseenter',function(){detail.textContent=it.desc;detail.classList.add('show');});
+    el.addEventListener('mouseleave',function(){detail.classList.remove('show');});
+    row.appendChild(el);
+  });
+  gsap.set(['.top','h1','.desc','.feat','.img-wrap img','.flow'],{autoAlpha:0});
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.top',{autoAlpha:0,x:-20,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.5},0)
+    .fromTo('h1',{autoAlpha:0,y:15,filter:'blur(4px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.6},0.15)
+    .fromTo('.desc',{autoAlpha:0,clipPath:'inset(0 100% 0 0)'},{autoAlpha:1,clipPath:'inset(0 0% 0 0)',duration:0.8,ease:'power3.inOut'},0.4)
+    .fromTo('.feat',{autoAlpha:0,y:8,rotation:-2},{autoAlpha:1,y:0,rotation:0,duration:0.4,stagger:0.07},0.8)
+    .fromTo('.img-wrap img',{autoAlpha:0,scale:1.06,y:15},{autoAlpha:1,scale:1,y:0,duration:1,ease:'power2.out'},1.0)
+    .fromTo('.flow',{autoAlpha:0,y:15},{autoAlpha:1,y:0,duration:0.6},1.4);
+})();
+</script>
+</body></html>

@@ -1,0 +1,45 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · Agenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:120px 160px}
+.eyebrow{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:64px}
+.items{display:flex;flex-direction:column;gap:28px}
+.item{display:flex;align-items:baseline;gap:32px}
+.num{font-family:"Consolas",monospace;font-size:14px;color:#7BA1B7;min-width:32px}
+.title{font-weight:700;font-size:42px;letter-spacing:-0.02em}
+.desc{font-size:24px;color:#666;margin-left:64px;margin-top:4px}
+</style></head><body>
+<div class="eyebrow">Agenda</div>
+<div class="items">
+<div><div class="item"><span class="num">01</span><span class="title">研究背景</span></div><div class="desc">海洋溶解氧与生态系统</div></div>
+<div><div class="item"><span class="num">02</span><span class="title">总体架构</span></div><div class="desc">前端 · 后端 · 数据流</div></div>
+<div><div class="item"><span class="num">03</span><span class="title">功能设计</span></div><div class="desc">等值面 · 剖面 · 低氧区 · EOF</div></div>
+<div><div class="item"><span class="num">04</span><span class="title">系统实现</span></div><div class="desc">模块化拓展机制与 Cesium 解耦</div></div>
+<div><div class="item"><span class="num">05</span><span class="title">创新点与特色</span></div><div class="desc">全深度三维透视 · 真实业务数据</div></div>
+<div><div class="item"><span class="num">06</span><span class="title">小组分工</span></div><div class="desc">5 人协作</div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  var nums=document.querySelectorAll('.num');
+  gsap.set(['.eyebrow','.items > div'],{autoAlpha:0});
+  nums.forEach(function(n){n.dataset.target=n.textContent;n.textContent='00';});
+
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.eyebrow',{autoAlpha:0,x:-25,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.6},0)
+    .fromTo('.items > div',{autoAlpha:0,x:-30},{autoAlpha:1,x:0,duration:0.6,stagger:0.12},0.3);
+
+  nums.forEach(function(n,i){
+    var target=parseInt(n.dataset.target);
+    var obj={val:0};
+    tl.to(obj,{val:target,duration:0.8,ease:'power2.out',onUpdate:function(){
+      n.textContent=String(Math.round(obj.val)).padStart(2,'0');
+    }},0.4+i*0.12);
+  });
+})();
+</script>
+</body></html>

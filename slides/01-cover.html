@@ -1,0 +1,65 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · Cover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative}
+.bg{position:absolute;inset:0;overflow:hidden}
+.bg img{width:100%;height:100%;object-fit:cover;opacity:.85}
+.bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,.1) 20%,rgba(0,0,0,.55) 80%)}
+.stage{position:absolute;inset:0;display:grid;place-items:center;z-index:1}
+.col{text-align:center}
+.wordmark{font-family:"Times New Roman",serif;font-weight:900;font-size:340px;letter-spacing:-0.03em;line-height:.86}
+.wordmark .dot{color:#7BA1B7}
+.sub{margin-top:48px;font-family:"Noto Serif SC",serif;font-weight:500;font-size:42px;letter-spacing:.2em;color:#ddd}
+.manifesto{margin-top:24px;font-family:"Times New Roman",serif;font-style:italic;font-size:28px;color:#999}
+.credit{position:absolute;font-family:"Consolas",monospace;font-size:13px;letter-spacing:.12em;color:#555;z-index:1}
+.tl{top:56px;left:64px}.tr{top:56px;right:64px;text-align:right}
+.bl{bottom:56px;left:64px}.br{bottom:56px;right:64px;text-align:right}
+.credit .l+.l{margin-top:5px}
+</style></head><body>
+<div class="bg"><img src="../assets/img/background.jpg" alt=""></div>
+<main class="stage"><div class="col">
+<h1 class="wordmark">DOVis<span class="dot">.</span></h1>
+<div class="sub">洋盆溶解氧多维可视化平台</div>
+<p class="manifesto">Dissolved oxygen, in three dimensions, across time.</p>
+</div></main>
+<div class="credit tl"><div class="l">GIS / Marine Visualization</div><div class="l">Course Presentation · 2026</div></div>
+<div class="credit tr"><div class="l">李航宇 · 谢骐骏 · 叶羽童</div><div class="l">黄旭彬 · 徐敏杰</div></div>
+<div class="credit bl"><div class="l">Data — Huang et al., Front. Mar. Sci., 2023</div><div class="l">ML-reconstructed DO · 1980–2019</div></div>
+<div class="credit br"><div class="l">Indian Ocean · 5–5395 m · 50 layers</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  function splitChars(el){
+    var text=el.textContent;el.innerHTML='';el.setAttribute('aria-label',text);
+    for(var i=0;i<text.length;i++){var s=document.createElement('span');s.style.display='inline-block';
+    s.style.willChange='transform,opacity,filter';if(text[i]===' ')s.innerHTML='&nbsp;';else s.textContent=text[i];el.appendChild(s);}
+    return el.querySelectorAll('span');
+  }
+  var wm=document.querySelector('.wordmark');
+  var dotSpan=wm.querySelector('.dot');var dotText=dotSpan.textContent;
+  wm.removeChild(dotSpan);
+  var chars=splitChars(wm);
+  var dot=document.createElement('span');dot.style.display='inline-block';dot.className='dot';dot.textContent=dotText;wm.appendChild(dot);
+  var allChars=wm.querySelectorAll('span');
+
+  gsap.set(['.sub','.manifesto','.credit'],{autoAlpha:0});
+  var tl=gsap.timeline({defaults:{ease:"power3.out"}});
+  tl.fromTo('.bg img',{scale:1.15},{scale:1.0,duration:4,ease:"power1.out"},0)
+    .fromTo(allChars,{autoAlpha:0,y:50,rotationX:-60,filter:'blur(8px)'},{autoAlpha:1,y:0,rotationX:0,filter:'blur(0px)',duration:1,stagger:0.06},0.3)
+    .fromTo('.sub',{autoAlpha:0,y:20,filter:'blur(4px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.9},0.9)
+    .fromTo('.manifesto',{autoAlpha:0},{autoAlpha:0.7,duration:1},1.3)
+    .fromTo('.credit',{autoAlpha:0},{autoAlpha:1,duration:0.8,stagger:0.15},1.5);
+  gsap.to('.dot',{textShadow:'0 0 30px #7BA1B7,0 0 80px #7BA1B7',repeat:-1,yoyo:true,duration:3,ease:'sine.inOut',delay:1.5});
+
+  document.addEventListener('mousemove',function(e){
+    var px=(e.clientX/1920-0.5)*2,py=(e.clientY/1080-0.5)*2;
+    gsap.to('.bg img',{x:px*-15,y:py*-8,duration:1.5,ease:'power2.out'});
+    gsap.to('.col',{x:px*6,y:py*4,duration:1,ease:'power2.out'});
+  });
+})();
+</script>
+</body></html>

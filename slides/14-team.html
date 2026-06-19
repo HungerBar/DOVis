@@ -1,0 +1,56 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · 分工与致谢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:100px 160px;display:flex;flex-direction:column;justify-content:center}
+.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:56px}
+h1{font-weight:900;font-size:48px;margin-bottom:48px;letter-spacing:-0.02em}
+.roster{display:flex;flex-direction:column;gap:20px;margin-bottom:64px}
+.person{display:flex;align-items:baseline;gap:32px;font-size:24px}
+.person .name{font-weight:700;min-width:120px}
+.person .role{color:#777}
+.thanks{border-top:1px solid #1a1a1a;padding-top:40px}
+.thanks-title{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.3em;color:#444;text-transform:uppercase;margin-bottom:20px}
+.thanks-body{font-size:22px;color:#555;line-height:1.8}
+.thanks-body .hl{color:#7BA1B7}
+</style></head><body>
+<div class="kicker">Team · 小组分工</div>
+<h1>分工与致谢</h1>
+<div class="roster">
+<div class="person"><span class="name">谢骐骏</span><span class="role">整体框架 / 汇总 / 全球 DO 三维透视 / 文档维护</span></div>
+<div class="person"><span class="name">李航宇</span><span class="role">Cesium 加载优化 / UI 美化 / PPT 制作</span></div>
+<div class="person"><span class="name">叶羽童</span><span class="role">垂直剖面分析 / 断面可视化 / 汇报</span></div>
+<div class="person"><span class="name">黄旭彬</span><span class="role">低氧区边界分析 / 低氧体积计算</span></div>
+<div class="person"><span class="name">徐敏杰</span><span class="role">EOF 模态分解</span></div>
+</div>
+<div class="thanks">
+<div class="thanks-title">致谢</div>
+<div class="thanks-body">
+数据来源：<span class="hl">Huang et al. (2023)</span> · Frontiers in Marine Science · DOI: 10.3389/fmars.2023.1291232<br>
+技术栈：<span class="hl">React 19 + Vite + Cesium + Three.js + Ant Design + FastAPI + xarray + PyVista</span>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  function splitChars(el){
+    var text=el.textContent;el.innerHTML='';
+    for(var i=0;i<text.length;i++){var s=document.createElement('span');s.style.display='inline-block';
+    s.style.willChange='transform,opacity,filter';if(text[i]===' ')s.innerHTML='&nbsp;';else s.textContent=text[i];el.appendChild(s);}
+    return el.querySelectorAll('span');
+  }
+  var h1=document.querySelector('h1');
+  var chars=splitChars(h1);
+  gsap.set(['.kicker','.person','.thanks'],{autoAlpha:0});
+
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.kicker',{autoAlpha:0,x:-20,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.5},0)
+    .fromTo(chars,{autoAlpha:0,y:25,filter:'blur(5px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.7,stagger:0.04},0.3)
+    .fromTo('.person',{autoAlpha:0,x:-25},{autoAlpha:1,x:0,duration:0.5,stagger:0.12},0.9)
+    .fromTo('.thanks',{autoAlpha:0,y:15,filter:'blur(3px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.7},1.6);
+})();
+</script>
+</body></html>

@@ -1,0 +1,73 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:72px 100px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.kicker{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.3em;color:#444;text-transform:uppercase}
+.module-num{font-family:"Consolas",monospace;font-size:12px;color:#7BA1B7}
+h1{font-weight:900;font-size:40px;letter-spacing:-0.02em;margin-bottom:16px}
+.desc{font-size:20px;color:#888;line-height:2.3;max-width:1700px;margin-bottom:20px}
+.desc li{margin-bottom:4px;list-style:none;padding-left:16px;position:relative}
+.desc li::before{content:'·';position:absolute;left:0;color:#7BA1B7}
+.features{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.feat{font-family:"Consolas",monospace;font-size:12px;color:#666;border:1px solid #282828;border-radius:4px;padding:5px 12px}
+.img-wrap{display:flex;justify-content:center;align-items:center;gap:32px}
+.img-wrap img{height:460px;width:auto;max-width:46%;border-radius:6px;border:1px solid #1a1a1a;object-fit:contain}
+.flow{font-family:"Consolas",monospace;font-size:13px;color:#555;margin-top:16px;border-top:1px solid #1a1a1a;padding-top:14px}
+.flow-title{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:14px}
+.flow-row{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+.flow-item{font-family:"Consolas",monospace;font-size:15px;color:#c0ccd4;cursor:pointer;transition:color .25s,transform .25s;padding:4px 0;white-space:nowrap}
+.flow-item:hover{color:#fff;transform:scale(1.08)}
+.flow-sep{font-family:"Consolas",monospace;font-size:14px;color:#333;margin:0 14px;user-select:none;flex-shrink:0}
+.flow-detail{margin-top:12px;font-size:14px;color:#c0ccd4;min-height:20px;opacity:0;transition:opacity .3s;text-align:center}
+.flow-detail.show{opacity:1}
+</style></head><body>
+<div class="top"><div class="kicker">功能设计 · Function</div><div class="module-num">Module 02</div></div>
+<h1>垂直剖面分析 Profile</h1>
+<div class="desc"><ul>
+<li>单点模式：点击 Cesium 球面获取经纬度，后端 xarray 最近邻插值返回垂直氧含量曲线</li>
+<li>断面模式：连接多点生成剖面线，后端沿线插值输出距离-深度二维氧分布场</li>
+<li>垂直曲线使用 Canvas 2D 自绘，标注 Mixed / Thermocline / Deep 三水层分带</li>
+<li>断面热力图采用 8 节点连续 colormap，双线性插值实现平滑着色</li>
+</ul></div>
+<div class="features"><span class="feat">Cesium 点选</span><span class="feat">xarray 插值</span><span class="feat">Canvas 2D 自绘</span><span class="feat">断面热力图</span><span class="feat">水层分带</span></div>
+<div class="img-wrap"><img src="../assets/img/verticalprofile.png" alt="Profile"><img src="../assets/img/verticalprofile1.png" alt="Profile 2"></div>
+<div class="flow">
+<div class="flow-title">数据流</div>
+<div class="flow-row" id="flowRow"></div>
+<div class="flow-detail" id="flowDetail"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  var items=[
+    {text:'Cesium 点击/画线',desc:'单点模式点击获取经纬度，断面模式绘制多点折线'},
+    {text:'useProfile Hook',desc:'调用 /api/profile/vertical?lat&lon&time 或 POST /section'},
+    {text:'xarray 插值',desc:'nearest 最近邻匹配海洋格点，haversine 沿线 20km 采样'},
+    {text:'DO-depth 数组',desc:'返回 [{depth, oxygen, distance_km, lat, lon}, ...]'},
+    {text:'Canvas 2D 绑定',desc:'ProfileChart 绘制垂直曲线 + 3水层分带，SectionChart 绘热力图'}
+  ];
+  var row=document.getElementById('flowRow');
+  var detail=document.getElementById('flowDetail');
+  items.forEach(function(it,i){
+    if(i>0){var sep=document.createElement('span');sep.className='flow-sep';sep.textContent='→';row.appendChild(sep);}
+    var el=document.createElement('span');el.className='flow-item';el.textContent=it.text;
+    el.addEventListener('mouseenter',function(){detail.textContent=it.desc;detail.classList.add('show');});
+    el.addEventListener('mouseleave',function(){detail.classList.remove('show');});
+    row.appendChild(el);
+  });
+  gsap.set(['.top','h1','.desc','.feat','.img-wrap img','.flow'],{autoAlpha:0});
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.top',{autoAlpha:0,x:-20,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.5},0)
+    .fromTo('h1',{autoAlpha:0,y:15,filter:'blur(4px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.6},0.15)
+    .fromTo('.desc',{autoAlpha:0,clipPath:'inset(0 100% 0 0)'},{autoAlpha:1,clipPath:'inset(0 0% 0 0)',duration:0.8,ease:'power3.inOut'},0.4)
+    .fromTo('.feat',{autoAlpha:0,y:8,rotation:-2},{autoAlpha:1,y:0,rotation:0,duration:0.4,stagger:0.07},0.8)
+    .fromTo('.img-wrap img',{autoAlpha:0,scale:1.06,y:15},{autoAlpha:1,scale:1,y:0,duration:1,ease:'power2.out',stagger:0.15},1.0)
+    .fromTo('.flow',{autoAlpha:0,y:15},{autoAlpha:1,y:0,duration:0.6},1.4);
+})();
+</script>
+</body></html>

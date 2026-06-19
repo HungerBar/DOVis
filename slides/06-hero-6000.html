@@ -1,0 +1,70 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · 研究区概况</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#050508;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative}
+.top{text-align:center;padding-top:180px}
+.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.3em;color:#444;text-transform:uppercase;margin-bottom:20px}
+.hero{font-weight:900;font-size:420px;letter-spacing:-0.04em;line-height:.82}
+.hero .unit{font-size:180px;color:#888;font-weight:700;margin-left:8px}
+.tagline{margin-top:28px;font-size:24px;color:#666;font-style:italic}
+.bottom{margin-top:80px;left:80px;right:80px;position:absolute;top:580px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:56px}
+.section{display:flex;flex-direction:column;gap:14px}
+.sec-title{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.2em;color:#555;text-transform:uppercase;margin-bottom:4px}
+.item{display:flex;align-items:baseline;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a}
+.val{font-family:"Consolas",monospace;font-size:16px;color:#ccc}
+.label{font-size:13px;color:#555}
+</style></head><body>
+<div class="top">
+<div class="kicker">Study Area · 印度洋全深度溶解氧</div>
+<div class="hero">5395<span class="unit">m</span></div>
+<div class="tagline">From surface to abyss — ML-reconstructed DO (Huang et al., 2023)</div>
+</div>
+<div class="bottom">
+<div class="section">
+<div class="sec-title">研究区范围</div>
+<div class="item"><span class="val">50°S – 27°N</span><span class="label">纬度</span></div>
+<div class="item"><span class="val">21°E – 152°E</span><span class="label">经度</span></div>
+<div class="item"><span class="val">50 层 · 5–5395 m</span><span class="label">垂直深度</span></div>
+<div class="item"><span class="val">1980 – 2019 · 480 月</span><span class="label">时间跨度</span></div>
+</div>
+<div class="section">
+<div class="sec-title">数据与技术</div>
+<div class="item"><span class="val">ERT/RF ML 重建 · R²=0.969</span><span class="label">数据方法</span></div>
+<div class="item"><span class="val">1° × 1°</span><span class="label">水平分辨率</span></div>
+<div class="item"><span class="val">Ray Marching · Marching Cubes · EOF</span><span class="label">核心算法</span></div>
+<div class="item"><span class="val">Cesium + Three.js + FastAPI</span><span class="label">渲染与后端</span></div>
+</div>
+<div class="section">
+<div class="sec-title">框架设计</div>
+<div class="item"><span class="val">React 19 + Vite + Ant Design</span><span class="label">前端</span></div>
+<div class="item"><span class="val">FastAPI + xarray + SQLite</span><span class="label">后端</span></div>
+<div class="item"><span class="val">CesiumAPI 5子API 解耦</span><span class="label">架构</span></div>
+<div class="item"><span class="val">module.js 注册式插拔</span><span class="label">模块化</span></div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  var heroEl=document.querySelector('.hero');
+  var unitSpan=heroEl.querySelector('.unit');
+  heroEl.textContent='';heroEl.appendChild(document.createTextNode('0'));heroEl.appendChild(unitSpan);
+  gsap.set(unitSpan,{autoAlpha:0,filter:'blur(6px)'});
+  gsap.set(['.kicker','.tagline','.section'],{autoAlpha:0});
+
+  var counter={val:0};
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.to(counter,{val:5395,duration:2.5,ease:'power2.out',onUpdate:function(){
+    heroEl.firstChild.textContent=Math.round(counter.val);
+  }},0.3)
+    .fromTo(unitSpan,{autoAlpha:0,filter:'blur(6px)'},{autoAlpha:1,filter:'blur(0px)',duration:0.6},2.0)
+    .fromTo('.kicker',{autoAlpha:0,y:-15,filter:'blur(4px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.7},0.1)
+    .fromTo('.tagline',{autoAlpha:0,filter:'blur(3px)'},{autoAlpha:1,filter:'blur(0px)',duration:0.7},0.8)
+    .fromTo('.section',{autoAlpha:0,y:30},{autoAlpha:1,y:0,duration:0.8,stagger:0.2},1.4)
+    .fromTo('.item',{autoAlpha:0,x:-20},{autoAlpha:1,x:0,duration:0.4,stagger:0.06},1.8);
+})();
+</script>
+</body></html>

@@ -1,0 +1,53 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · 课程要求</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative}
+.page{display:grid;grid-template-columns:600px 1fr;width:1920px;height:1080px}
+.left{padding:56px 48px;display:flex;flex-direction:column;justify-content:center}
+.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:20px}
+h1{font-weight:700;font-size:38px;margin-bottom:32px}
+.list{display:flex;flex-direction:column;gap:16px}
+.req{display:flex;align-items:baseline;gap:14px}
+.req-num{font-family:"Consolas",monospace;font-size:14px;color:#7BA1B7;flex-shrink:0}
+.req-text{font-size:20px;color:#ddd;line-height:1.5}
+.req-text .tag{font-family:"Consolas",monospace;font-size:11px;color:#7BA1B7;background:#7BA1B715;padding:2px 8px;border-radius:3px;margin-left:8px}
+.right{display:flex;justify-content:center;align-items:center;padding:48px;height:1080px}
+.img-cell{position:relative;overflow:hidden;border-radius:8px;background:transparent;width:100%;height:100%}
+.img-cell img{width:100%;height:100%;object-fit:contain;display:block}
+.img-cap{position:absolute;bottom:8px;left:10px;font-family:"Consolas",monospace;font-size:11px;color:#aaa;background:rgba(0,0,0,.85);padding:3px 8px;border-radius:3px}
+</style></head><body>
+<div class="page">
+<div class="left">
+<div class="kicker">Course Requirements</div>
+<h1>满足课程考核要求</h1>
+<div class="list">
+<div class="req"><span class="req-num">01</span><span class="req-text">GitHub 代码管理与多人协作开发<span class="tag">Git</span></span></div>
+<div class="req"><span class="req-num">02</span><span class="req-text">前后端分离：React 19 + Vite / FastAPI + uvicorn<span class="tag">Framework</span></span></div>
+<div class="req"><span class="req-num">03</span><span class="req-text">前后端 REST 交互，四模块均实现空间查询与分析<span class="tag">Spatial</span></span></div>
+<div class="req"><span class="req-num">04</span><span class="req-text">Cesium 三维时空 + 480 月时间滑块动态可视化<span class="tag">3D+Time</span></span></div>
+<div class="req"><span class="req-num">07</span><span class="req-text">Plotly + Recharts 第三方图表库<span class="tag">Chart</span></span></div>
+<div class="req"><span class="req-num">08</span><span class="req-text">多图层联动：3DTiles + GeoJSON + Entity 叠加<span class="tag">Layer</span></span></div>
+<div class="req"><span class="req-num">09</span><span class="req-text">NetCDF / CSV / JSON / GeoJSON 多格式导出<span class="tag">Export</span></span></div>
+<div class="req"><span class="req-num">10</span><span class="req-text">Marching Cubes + EOF + rasterio 高级算法<span class="tag">Advanced</span></span></div>
+</div>
+</div>
+<div class="right">
+<div class="img-cell"><img src="../assets/img/req-github.png" alt=""><div class="img-cap">GitHub 多人协作</div></div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  gsap.set(['.kicker','h1','.req','.img-cell'],{autoAlpha:0});
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.kicker',{autoAlpha:0,x:-20,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.5},0)
+    .fromTo('h1',{autoAlpha:0,y:15,filter:'blur(3px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.6},0.15)
+    .fromTo('.req',{autoAlpha:0,x:-20},{autoAlpha:1,x:0,duration:0.4,stagger:0.08},0.4)
+    .fromTo('.img-cell',{autoAlpha:0,scale:1.05,filter:'blur(3px)'},{autoAlpha:1,scale:1,filter:'blur(0px)',duration:0.8},0.7);
+})();
+</script>
+</body></html>

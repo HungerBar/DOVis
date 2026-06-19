@@ -1,0 +1,73 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · 痛点</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:100px 120px}
+.bg{position:absolute;inset:0;overflow:hidden;z-index:0}
+.bg img{width:100%;height:100%;object-fit:cover;opacity:.3}
+.bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#000 0%,transparent 30%,transparent 70%,#000 100%)}
+.content{position:relative;z-index:1}
+.kicker{font-family:"Consolas",monospace;font-size:14px;letter-spacing:.4em;color:#555;text-transform:uppercase;margin-bottom:48px}
+h2{font-weight:900;font-size:48px;letter-spacing:-0.02em;margin-bottom:48px;line-height:1.3}
+h2 .hl{color:#7BA1B7}
+.cols{display:grid;grid-template-columns:1fr 60px 1fr;gap:0}
+.col-title{font-weight:700;font-size:22px;margin-bottom:28px;letter-spacing:.05em;color:#555}
+.col-title.bright{color:#7BA1B7}
+.point{font-size:22px;color:#888;line-height:1.68;padding-left:16px;border-left:2px solid #222;margin-bottom:10px}
+.point.bright{color:#ddd;border-color:#7BA1B744}
+.point.summary{color:#fff;border-color:#7BA1B7;font-weight:700}
+.divider{width:1px;background:none;margin:0 auto;position:relative}
+</style></head><body>
+<div class="bg"><img src="../assets/img/deepsea.jpg" alt=""></div>
+<div class="content">
+<div class="kicker">Problem & Solution</div>
+<h2>从 2D 切片到<span class="hl">四模块协同分析</span></h2>
+<div class="cols">
+<div>
+<div class="col-title">传统 2D 切片可视化</div>
+<div class="point">仅展示单一深度层，无法纵观全貌</div>
+<div class="point">缺乏时间维度联动</div>
+<div class="point">Marching Cubes 难以直接还原经纬度-深度网格的真实物理比例</div>
+<div class="point">点位、断面、低氧边界与模态分析彼此割裂</div>
+<div class="point">算法与界面耦合，后续功能扩展成本高</div>
+</div>
+<div class="divider"><svg width="2" height="100%" style="position:absolute;inset:0;margin:auto;overflow:visible"><line class="div-line" x1="1" y1="50%" x2="1" y2="50%" stroke="#7BA1B7" stroke-width="1" stroke-opacity="0.6"/></svg></div>
+<div>
+<div class="col-title bright">DOVis 三维透视方案</div>
+<div class="point bright">IsoSurface：Ray Marching 强化深度表达，3DTiles 支持球面加载</div>
+<div class="point bright">Profile：Cesium 点选/画线联动垂直剖面与断面热力图</div>
+<div class="point bright">Hypoxia：阈值提取低氧区边界，GeoJSON 叠加展示空间演化</div>
+<div class="point bright">EOF：复用 eofs 现有库，验证算法层可替换可扩展</div>
+<div class="point bright summary">汇总：以 Cesium 为统一空间底座，组合 3D 体视图、剖面图、边界图与模态图</div>
+</div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  function splitChars(el){
+    var text=el.textContent;el.innerHTML='';
+    for(var i=0;i<text.length;i++){var s=document.createElement('span');s.style.display='inline-block';
+    s.style.willChange='transform,opacity,filter';if(text[i]===' ')s.innerHTML='&nbsp;';else s.textContent=text[i];el.appendChild(s);}
+    return el.querySelectorAll('span');
+  }
+  var h2=document.querySelector('h2');
+  var hlSpan=h2.querySelector('.hl');var hlText=hlSpan.textContent;h2.innerHTML=h2.textContent;
+  var chars=splitChars(h2);
+  gsap.set(['.kicker','.col-title','.point'],{autoAlpha:0});
+
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.bg img',{scale:1.1},{scale:1,duration:3,ease:'power1.out'},0)
+    .fromTo('.kicker',{autoAlpha:0,x:-20,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.6},0.2)
+    .fromTo(chars,{autoAlpha:0,y:30,filter:'blur(6px)'},{autoAlpha:1,y:0,filter:'blur(0px)',duration:0.7,stagger:0.025},0.4)
+    .fromTo('.div-line',{attr:{y1:'50%',y2:'50%'}},{attr:{y1:'5%',y2:'95%'},duration:1,ease:'power3.inOut'},1.0)
+    .fromTo('.cols > div:first-child .col-title',{autoAlpha:0,x:-20},{autoAlpha:1,x:0,duration:0.5},1.2)
+    .fromTo('.cols > div:first-child .point',{autoAlpha:0,x:-20},{autoAlpha:1,x:0,duration:0.4,stagger:0.1},1.4)
+    .fromTo('.cols > div:last-child .col-title',{autoAlpha:0,x:20},{autoAlpha:1,x:0,duration:0.5},1.2)
+    .fromTo('.cols > div:last-child .point',{autoAlpha:0,x:20},{autoAlpha:1,x:0,duration:0.4,stagger:0.1},1.4);
+})();
+</script>
+</body></html>

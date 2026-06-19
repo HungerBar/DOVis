@@ -1,0 +1,65 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>DOVis · 创新点</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:80px 160px}
+.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:40px}
+.items{display:flex;flex-direction:column;gap:32px;position:relative}
+.timeline-svg{position:absolute;left:15px;top:0;height:100%;width:2px;overflow:visible}
+.item{display:flex;align-items:baseline;gap:40px}
+.num{font-family:"Consolas",monospace;font-size:14px;color:#7BA1B7;min-width:32px}
+.title{font-weight:700;font-size:32px;letter-spacing:-0.01em}
+.sub{font-size:21px;color:#666;margin-top:6px}
+</style></head><body>
+<div class="kicker">Innovation · 创新点与特色</div>
+<div class="items">
+<svg class="timeline-svg" viewBox="0 0 2 400" preserveAspectRatio="none">
+<line class="tl-line" x1="1" y1="0" x2="1" y2="400" stroke="#7BA1B7" stroke-width="1" stroke-opacity="0.4"/></svg>
+<div class="item"><span class="num">01</span><div class="content">
+<div class="title">WebGL Ray Marching 实时体渲染</div>
+<div class="sub">GLSL 512 步迭代 + Data3DTexture，弥补 Cesium 高度压缩不明显</div>
+</div></div>
+<div class="item"><span class="num">02</span><div class="content">
+<div class="title">四维交互 + 二进制传输</div>
+<div class="sub">Float32 ArrayBuffer 零解码构建 3D 纹理，480月×50层实时切换</div>
+</div></div>
+<div class="item"><span class="num">03</span><div class="content">
+<div class="title">Cesium 安全解耦 + 模块化插拔</div>
+<div class="sub">5 子 API Context + module.js 一行注册 + 窗口生命周期管理</div>
+</div></div>
+<div class="item"><span class="num">04</span><div class="content">
+<div class="title">EOF 经验正交函数分解</div>
+<div class="sub">水平/断面双模式 + eofs 求解 + Plotly 交互 + GeoJSON 高值叠加</div>
+</div></div>
+<div class="item"><span class="num">05</span><div class="content">
+<div class="title">SQLite 缓存 + MD5 命中策略</div>
+<div class="sub">NetCDF 按时间步 zlib 压缩存储，参数哈希避免重复计算</div>
+</div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
+<script>
+(function(){
+  var line=document.querySelector('.tl-line');
+  gsap.set(line,{strokeDasharray:400,strokeDashoffset:400});
+  var nums=document.querySelectorAll('.num');
+  gsap.set(['.kicker','.item'],{autoAlpha:0});
+  nums.forEach(function(n){n.dataset.target=n.textContent;n.textContent='00';});
+
+  var tl=gsap.timeline({defaults:{ease:'power3.out'}});
+  tl.fromTo('.kicker',{autoAlpha:0,x:-20,filter:'blur(4px)'},{autoAlpha:1,x:0,filter:'blur(0px)',duration:0.6},0)
+    .to(line,{strokeDashoffset:0,duration:2,ease:'power3.inOut'},0.4)
+    .fromTo('.item',{autoAlpha:0,x:-30},{autoAlpha:1,x:0,duration:0.6,stagger:0.2},0.5);
+
+  nums.forEach(function(n,i){
+    var target=parseInt(n.dataset.target);
+    var obj={val:0};
+    tl.to(obj,{val:target,duration:0.6,ease:'power2.out',onUpdate:function(){
+      n.textContent=String(Math.round(obj.val)).padStart(2,'0');
+    }},0.6+i*0.2);
+  });
+})();
+</script>
+</body></html>
