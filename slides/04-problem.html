@@ -52,8 +52,17 @@ h2 .hl{color:#7BA1B7}
     return el.querySelectorAll('span');
   }
   var h2=document.querySelector('h2');
-  var hlSpan=h2.querySelector('.hl');var hlText=hlSpan.textContent;h2.innerHTML=h2.textContent;
-  var chars=splitChars(h2);
+  var hlSpan=h2.querySelector('.hl');var hlText=hlSpan.textContent;
+  var fullText=h2.textContent;var hlStart=fullText.indexOf(hlText);
+  h2.innerHTML='';
+  var chars=[];
+  for(var i=0;i<fullText.length;i++){
+    var s=document.createElement('span');s.style.display='inline-block';
+    s.style.willChange='transform,opacity,filter';
+    if(fullText[i]===' ')s.innerHTML='&nbsp;';else s.textContent=fullText[i];
+    if(i>=hlStart&&i<hlStart+hlText.length)s.className='hl';
+    h2.appendChild(s);chars.push(s);
+  }
   gsap.set(['.kicker','.col-title','.point'],{autoAlpha:0});
 
   var tl=gsap.timeline({defaults:{ease:'power3.out'}});
