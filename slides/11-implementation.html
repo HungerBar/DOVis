@@ -5,21 +5,21 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1920px;height:1080px;overflow:hidden}
 body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:100px 140px}
-.kicker{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:40px}
-h1{font-weight:900;font-size:44px;margin-bottom:48px;letter-spacing:-0.02em}
+.kicker{font-family:"Consolas",monospace;font-size:22px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:40px}
+h1{font-weight:900;font-size:54px;margin-bottom:68px;letter-spacing:-0.02em}
 .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px}
 .card{border:1px solid #1a1a1a;border-radius:8px;padding:32px}
-.card-title{font-weight:700;font-size:20px;margin-bottom:14px;color:#eee}
+.card-title{font-weight:700;font-size:25px;margin-bottom:14px;color:#eee}
 .card-title .hl{color:#7BA1B7}
-.card-body{font-size:18px;color:#777;line-height:1.8}
-.card-code{font-family:"Consolas",monospace;font-size:13px;color:#555;margin-top:14px;background:#0a0a0a;padding:8px 12px;border-radius:4px}
+.card-body{font-size:22px;color:#777;line-height:1.8}
+.card-code{font-family:"Consolas",monospace;font-size:22px;color:#555;margin-top:14px;background:#0a0a0a;padding:8px 12px;border-radius:4px}
 .flow{margin-top:48px;border-top:1px solid #1a1a1a;padding-top:28px}
-.flow-title{font-family:"Consolas",monospace;font-size:12px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:20px}
+.flow-title{font-family:"Consolas",monospace;font-size:17px;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:20px}
 .flow-row{display:flex;align-items:center;justify-content:center;gap:0;width:100%}
-.flow-item{font-family:"Consolas",monospace;font-size:15px;color:#c0ccd4;cursor:pointer;transition:color .25s,transform .25s;padding:4px 0;white-space:nowrap}
+.flow-item{font-family:"Consolas",monospace;font-size:22px;color:#c0ccd4;cursor:pointer;transition:color .25s,transform .25s;padding:4px 0;white-space:nowrap}
 .flow-item:hover{color:#fff;transform:scale(1.08)}
-.flow-sep{font-family:"Consolas",monospace;font-size:14px;color:#333;margin:0 18px;user-select:none;flex-shrink:0}
-.flow-detail{margin-top:16px;font-family:"Times New Roman","Noto Serif SC",serif;font-size:14px;color:#c0ccd4;min-height:20px;opacity:0;transition:opacity .3s;text-align:center}
+.flow-sep{font-family:"Consolas",monospace;font-size:17px;color:#333;margin:0 18px;user-select:none;flex-shrink:0}
+.flow-detail{margin-top:56px;font-family:"Times New Roman","Noto Serif SC",serif;font-size:23px;color:#c0ccd4;min-height:20px;opacity:0;transition:opacity .3s;text-align:center}
 .flow-detail.show{opacity:1}
 </style></head><body>
 <div class="kicker">Implementation · 系统实现</div>
@@ -37,8 +37,8 @@ h1{font-weight:900;font-size:44px;margin-bottom:48px;letter-spacing:-0.02em}
 </div>
 <div class="card">
 <div class="card-title"><span class="hl">useWindowManager</span> 浮动窗口</div>
-<div class="card-body">统一处理窗口打开、层叠、拖拽、吸附、最大化与最小化；关闭逻辑由模块通过 cleanup 自定义，资源问题会被限定在对应模块内并显式暴露。</div>
-<div class="card-code">registerCleanup(module.id, () => module.releaseResources())</div>
+<div class="card-body">统一管理浮动窗口的层叠、拖拽、吸附和最大化，窗口关闭时自动释放对应的 Cesium 资源，防止内存泄漏。</div>
+<div class="card-code">cleanup: () => { safeRemoveTileset(); handler.destroy(); }</div>
 </div>
 </div>
 <div class="flow">
@@ -51,13 +51,13 @@ h1{font-weight:900;font-size:44px;margin-bottom:48px;letter-spacing:-0.02em}
 <script>
 (function(){
   var items=[
-    {text:'module.js 声明',desc:'每个前端模块声明 id、title、component、props 与窗口 policy，形成统一模块清单'},
-    {text:'ModuleLauncher 注册',desc:'启动器遍历 moduleConfig 生成入口，新增模块不需要改主界面结构'},
-    {text:'WindowManager 托管',desc:'useWindowManager 负责打开、隐藏、层叠、拖拽、吸附、最大化与统一最小化'},
-    {text:'模块自定义关闭',desc:'关闭前触发模块注册的 cleanup，由模块决定释放 tileset、GeoJSON、handler 或局部状态'},
-    {text:'Hook + CesiumAPI',desc:'模块通过 useIsoSurface / useProfile / useEOF / useHypoxia 与 useCesiumAPI() 获取能力'},
-    {text:'FastAPI 分发',desc:'fetch 调用后端路由，路由再进入 core、services、isoGeometry、hypoxia 等计算单元'},
-    {text:'结果回流渲染',desc:'JSON / GeoJSON / 3DTiles 返回前端，多模块可同时占用地图资源并由各自 cleanup 管理释放'}
+    {text:'module.js 注册',desc:'config/module.js 声明 {id, title, component, policy}，新功能一行配置即注册'},
+    {text:'ModuleLauncher 按钮',desc:'遍历 moduleConfig 数组渲染功能入口按钮'},
+    {text:'WindowManager 窗口',desc:'useWindowManager 管理窗口生命周期与 z-index 层叠'},
+    {text:'模块 Hook + CesiumAPI',desc:'useIsoSurface / useProfile / useEOF / useHypoxia + useCesiumAPI()'},
+    {text:'fetch 后端 API',desc:'GET/POST 请求后端 FastAPI 路由 (port 5001)'},
+    {text:'JSON / GeoJSON / 3DTiles',desc:'后端返回二进制体数据 / GeoJSON / 3D Tiles'},
+    {text:'Cesium 渲染',desc:'CesiumTilesRenderer 加载 B3DM，geoJsonApi 叠加矢量图层'}
   ];
   var row=document.getElementById('flowRow');
   var detail=document.getElementById('flowDetail');

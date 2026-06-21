@@ -4,14 +4,18 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1920px;height:1080px;overflow:hidden}
-body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:120px 160px}
-.eyebrow{font-family:"Consolas",monospace;font-size:13px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:64px}
+body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",serif;-webkit-font-smoothing:antialiased;position:relative;padding:60px 120px 80px;display:flex;gap:80px}
+.left-col{flex:1;display:flex;flex-direction:column}
+.right-col{display:flex;flex-direction:column;gap:32px;justify-content:center;align-items:flex-end;padding-top:20px}
+.right-col img{max-height:1000px;width:auto;border-radius:8px;border:none;object-fit:contain}
+.eyebrow{font-family:"Consolas",monospace;font-size:15px;letter-spacing:.4em;color:#444;text-transform:uppercase;margin-bottom:64px}
 .items{display:flex;flex-direction:column;gap:28px}
 .item{display:flex;align-items:baseline;gap:32px}
-.num{font-family:"Consolas",monospace;font-size:14px;color:#7BA1B7;min-width:32px}
-.title{font-weight:700;font-size:42px;letter-spacing:-0.02em}
-.desc{font-size:24px;color:#666;margin-left:64px;margin-top:4px}
+.num{font-family:"Consolas",monospace;font-size:17px;color:#7BA1B7;min-width:32px}
+.title{font-weight:700;font-size:52px;letter-spacing:-0.02em}
+.desc{font-size:30px;color:#666;margin-left:64px;margin-top:4px}
 </style></head><body>
+<div class="left-col">
 <div class="eyebrow">Agenda</div>
 <div class="items">
 <div><div class="item"><span class="num">01</span><span class="title">研究背景</span></div><div class="desc">海洋溶解氧与生态系统</div></div>
@@ -20,6 +24,10 @@ body{background:#000;color:#fff;font-family:"Times New Roman","Noto Serif SC",se
 <div><div class="item"><span class="num">04</span><span class="title">系统实现</span></div><div class="desc">模块化拓展机制与 Cesium 解耦</div></div>
 <div><div class="item"><span class="num">05</span><span class="title">创新点与特色</span></div><div class="desc">全深度三维透视 · 真实业务数据</div></div>
 <div><div class="item"><span class="num">06</span><span class="title">小组分工</span></div><div class="desc">5 人协作</div></div>
+</div>
+</div>
+<div class="right-col">
+<img src="../assets/img/earth.jpg" alt="Earth">
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>(function(){if(window.frameElement)return;var b=document.body,w=1920,h=1080;function fit(){var s=innerWidth/w;b.style.transform="scale("+s+")";b.style.transformOrigin="top left";document.documentElement.style.background="#000"}fit();window.addEventListener("resize",fit)})()</script>
