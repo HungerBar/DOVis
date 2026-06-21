@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm run ensure:frontend && pnpm run ensure:backend && pnpm run --parallel \"/^dev:(backend|frontend)$/\"",
     "ensure:frontend": "[ -d frontend/node_modules ] || pnpm run install:frontend",
-    "ensure:backend": "python -c \"import fastapi, uvicorn, pyproj, eofs\" 2>/dev/null || pnpm run install:backend",
+    "ensure:backend": "python -c \"import fastapi, uvicorn, pyproj, eofs, shapely, rasterio\" 2>/dev/null || pnpm run install:backend",
     "dev:backend": "python -m uvicorn backend.main:app --host 127.0.0.1 --port 5001",
     "dev:backend:reload": "python -m uvicorn backend.main:app --host 127.0.0.1 --port 5001 --reload --reload-dir backend",
     "dev:frontend": "pnpm --dir frontend dev --host 127.0.0.1",
